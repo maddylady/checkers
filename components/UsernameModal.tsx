@@ -26,8 +26,8 @@ export default function UsernameModal({
   const handleSave = () => {
     const trimmed = name.trim();
     if (!trimmed) return;
-    setUsername(trimmed);
     setCity(city.trim());
+    setUsername(trimmed);
     onSave(trimmed, city.trim());
     onClose();
   };

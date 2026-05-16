@@ -53,27 +53,32 @@ export default function GamePage({
 
   const gameStartTime = useRef<number>(Date.now());
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const timerCountRef = useRef<number>(30);
   const gameStateRef = useRef<GameState>(gameState);
+  const playerColorRef = useRef<Player>(playerColor);
+  const opponentNameRef = useRef<string>(opponentName);
   gameStateRef.current = gameState;
+  playerColorRef.current = playerColor;
+  opponentNameRef.current = opponentName;
 
   // ---- Timer ----
   useEffect(() => {
     if (gameState.status !== 'playing') return;
 
+    timerCountRef.current = 30;
     setTurnTimer(30);
     timerRef.current = setInterval(() => {
-      setTurnTimer(prev => {
-        if (prev <= 1) {
-          // Time's up — make a random move
-          const moves = getAllValidMoves(gameStateRef.current.board, gameStateRef.current.currentPlayer);
-          if (moves.length > 0) {
-            const randomMove = moves[Math.floor(Math.random() * moves.length)];
-            handleMove(randomMove);
-          }
-          return 30;
+      timerCountRef.current -= 1;
+      setTurnTimer(timerCountRef.current);
+
+      if (timerCountRef.current <= 0) {
+        const moves = getAllValidMoves(gameStateRef.current.board, gameStateRef.current.currentPlayer);
+        if (moves.length > 0) {
+          handleMove(moves[Math.floor(Math.random() * moves.length)]);
         }
-        return prev - 1;
-      });
+        timerCountRef.current = 30;
+        setTurnTimer(30);
+      }
     }, 1000);
 
     return () => {
@@ -108,24 +113,20 @@ export default function GamePage({
     if (gameState.status !== 'playing') {
       if (timerRef.current) clearInterval(timerRef.current);
 
-      // Run analysis
       const notes = analyzeGame(gameState.moveHistory, gameState.board);
       setAnalysisNotes(notes);
 
-      // Record result
-      {
-        const duration = Math.floor((Date.now() - gameStartTime.current) / 1000);
-        let result: 'win' | 'loss' | 'draw' = 'draw';
-        if (gameState.status === 'red_wins') {
-          result = playerColor === 'red' ? 'win' : 'loss';
-        } else if (gameState.status === 'black_wins') {
-          result = playerColor === 'black' ? 'win' : 'loss';
-        }
-        const opp = mode === 'ai' ? `AI (${difficulty})` : opponentName || 'Player 2';
-        recordGameResult(result, mode, opp, gameState.moveHistory.length, duration);
+      const duration = Math.floor((Date.now() - gameStartTime.current) / 1000);
+      const color = playerColorRef.current;
+      let result: 'win' | 'loss' | 'draw' = 'draw';
+      if (gameState.status === 'red_wins') {
+        result = color === 'red' ? 'win' : 'loss';
+      } else if (gameState.status === 'black_wins') {
+        result = color === 'black' ? 'win' : 'loss';
       }
+      const opp = mode === 'ai' ? `AI (${difficulty})` : opponentNameRef.current || 'Player 2';
+      recordGameResult(result, mode, opp, gameState.moveHistory.length, duration);
 
-      // Short delay then show win screen
       const t = setTimeout(() => setShowWin(true), 500);
       return () => clearTimeout(t);
     }

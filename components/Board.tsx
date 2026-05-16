@@ -110,8 +110,6 @@ export default function Board({ gameState, onCellClick, flipped = false, disable
                     <PieceComponent
                       piece={piece}
                       isSelected={isSelected}
-                      row={row}
-                      col={col}
                     />
                   )}
                 </div>

@@ -7,11 +7,9 @@ import { Crown } from 'lucide-react';
 interface PieceProps {
   piece: Piece;
   isSelected: boolean;
-  row: number;
-  col: number;
 }
 
-export default function PieceComponent({ piece, isSelected, row, col }: PieceProps) {
+export default function PieceComponent({ piece, isSelected }: PieceProps) {
   const isRed = piece.player === 'red';
   const isKing = piece.type === 'king';
 

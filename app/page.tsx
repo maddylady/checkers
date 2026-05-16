@@ -18,7 +18,7 @@ import {
   seedLeaderboardIfEmpty,
 } from '@/lib/storage';
 import type { Difficulty } from '@/lib/ai';
-import type { Player, PlayerStats, GameRecord } from '@/lib/game-logic';
+import type { PlayerStats, GameRecord } from '@/lib/game-logic';
 import { Swords, Shield, Brain, Globe } from 'lucide-react';
 
 type Screen = 'home' | 'game';
