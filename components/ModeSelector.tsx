@@ -70,8 +70,33 @@ const bots: BotCharacter[] = [
     tagline: 'Has memorised every checkers theory.',
     difficulty: 'medium', color: 'from-violet-600 to-purple-500', elo: 1160,
   },
+  {
+    id: 'bezos', name: 'Jeff Bezos', emoji: '📦',
+    tagline: 'Day 1. Every move optimised for long-term domination.',
+    difficulty: 'medium', color: 'from-orange-600 to-yellow-500', elo: 1210,
+  },
+  {
+    id: 'jobs', name: 'Steve Jobs', emoji: '🍎',
+    tagline: 'One more move. Insanely great, or nothing.',
+    difficulty: 'medium', color: 'from-gray-500 to-gray-400', elo: 1140,
+  },
+  {
+    id: 'arman', name: 'Arman Suleimenov', emoji: '🦁',
+    tagline: 'Built from the steppe. Plays like he has something to prove.',
+    difficulty: 'medium', color: 'from-sky-600 to-blue-500', elo: 1250,
+  },
 
   // ── Expert ────────────────────────────────────────────────────────────────
+  {
+    id: 'brucelee', name: 'Bruce Lee', emoji: '🥋',
+    tagline: 'Be like water. Your pieces won\'t know what hit them.',
+    difficulty: 'hard', color: 'from-yellow-600 to-amber-400', elo: 1890,
+  },
+  {
+    id: 'buffett', name: 'Warren Buffett', emoji: '📈',
+    tagline: 'Patient. Disciplined. Holding your pieces hostage since move 3.',
+    difficulty: 'hard', color: 'from-green-700 to-emerald-500', elo: 1760,
+  },
   {
     id: 'napoleon', name: 'Napoleon', emoji: '🫅',
     tagline: 'Every piece an army. Every move a campaign.',
@@ -140,7 +165,7 @@ export default function ModeSelector({ onSelect }: ModeSelectorProps) {
       mode: 'ai' as GameMode,
       icon: <Bot size={28} />,
       title: 'vs Bots',
-      desc: 'Challenge 17 unique bots — from beginners to legendary figures',
+      desc: 'Challenge 22 unique bots — from beginners to legendary figures',
       color: 'from-purple-600 to-blue-600',
       badge: 'Single Player',
     },
@@ -233,7 +258,7 @@ export default function ModeSelector({ onSelect }: ModeSelectorProps) {
           >
             <div className="text-center mb-5">
               <h2 className="text-2xl font-bold text-white mb-1">Pick Your Opponent</h2>
-              <p className="text-gray-400 text-sm">17 characters · 3 skill tiers</p>
+              <p className="text-gray-400 text-sm">22 characters · 3 skill tiers</p>
             </div>
 
             <div className="max-h-[60vh] overflow-y-auto pr-1 space-y-5 scrollbar-thin">
