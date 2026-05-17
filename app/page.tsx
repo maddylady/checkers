@@ -138,6 +138,7 @@ export default function HomePage() {
         googleUser={googleUser}
         coins={coins}
         onShopOpen={() => setShowShop(true)}
+        onLogoClick={() => setScreen('home')}
       />
 
       <AnimatePresence mode="wait">

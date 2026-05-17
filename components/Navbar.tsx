@@ -14,6 +14,7 @@ interface NavbarProps {
   googleUser: AuthUser | null;
   coins?: number;
   onShopOpen: () => void;
+  onLogoClick?: () => void;
 }
 
 function GoogleIcon() {
@@ -122,7 +123,7 @@ function ProModal({ onClose }: { onClose: () => void }) {
   );
 }
 
-export default function Navbar({ theme, onThemeToggle, username, onUsernameChange, googleUser, coins, onShopOpen }: NavbarProps) {
+export default function Navbar({ theme, onThemeToggle, username, onUsernameChange, googleUser, coins, onShopOpen, onLogoClick }: NavbarProps) {
   const [showPro, setShowPro] = useState(false);
   const [showUserMenu, setShowUserMenu] = useState(false);
   const [signingIn, setSigningIn] = useState(false);
@@ -141,14 +142,17 @@ export default function Navbar({ theme, onThemeToggle, username, onUsernameChang
     <>
       <nav className="fixed top-0 left-0 right-0 z-30 flex items-center justify-between px-6 py-3 backdrop-blur-md bg-black/30 border-b border-white/10">
         {/* Logo */}
-        <div className="flex items-center gap-2">
+        <button
+          onClick={onLogoClick}
+          className="flex items-center gap-2 hover:opacity-80 transition-opacity"
+        >
           <div className="w-8 h-8 bg-gradient-to-br from-amber-400 to-red-600 rounded-lg flex items-center justify-center">
             <span className="text-lg">♟</span>
           </div>
           <span className="font-bold text-white text-lg hidden sm:block">
             CheckMate <span className="text-amber-400">Arena</span>
           </span>
-        </div>
+        </button>
 
         {/* Center */}
         <div className="hidden md:flex items-center gap-1 text-sm text-gray-400">
