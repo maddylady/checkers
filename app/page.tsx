@@ -8,6 +8,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import Navbar from '@/components/Navbar';
 import ModeSelector, { type GameMode, type TimeControl } from '@/components/ModeSelector';
 import GamePage from '@/components/GamePage';
+import DrillsPage from '@/components/DrillsPage';
 import Leaderboard from '@/components/Leaderboard';
 import UsernameModal from '@/components/UsernameModal';
 import DailyChallenges from '@/components/DailyChallenges';
@@ -31,7 +32,7 @@ import { fetchLeaderboard, onAuthStateChange, type AuthUser } from '@/lib/supaba
 import type { Difficulty } from '@/lib/ai';
 import type { PlayerStats, GameRecord, RulesVariant } from '@/lib/game-logic';
 
-type Screen = 'home' | 'game';
+type Screen = 'home' | 'game' | 'drills';
 
 export default function HomePage() {
   const [screen, setScreen] = useState<Screen>('home');
@@ -427,6 +428,31 @@ export default function HomePage() {
 
             </div>
 
+            {/* Drills CTA */}
+            <motion.div
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.35 }}
+              className="max-w-6xl mx-auto px-4 pb-4"
+            >
+              <div className="rounded-2xl p-4 border border-amber-500/30 bg-amber-500/5 dark:bg-amber-500/10 backdrop-blur-sm shadow-sm">
+                <div className="flex items-center justify-between gap-4">
+                  <div>
+                    <div className="font-bold text-gray-900 dark:text-white flex items-center gap-2 text-sm">
+                      🎯 Tactics Drills
+                    </div>
+                    <div className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">10 puzzles · Sharpen your skills · Earn coins</div>
+                  </div>
+                  <button
+                    onClick={() => setScreen('drills')}
+                    className="flex-shrink-0 px-4 py-2 bg-amber-500 hover:bg-amber-400 text-white rounded-xl font-semibold text-sm transition-colors shadow-md shadow-amber-500/25"
+                  >
+                    Start →
+                  </button>
+                </div>
+              </div>
+            </motion.div>
+
             <div className="text-center py-6 text-gray-400 dark:text-gray-600 text-sm">
               CheckMate Arena © 2025 — Next.js · Socket.io · Framer Motion
             </div>
@@ -452,6 +478,17 @@ export default function HomePage() {
               rulesVariant={rulesVariant}
               timeControl={timeControl}
             />
+          </motion.div>
+        )}
+
+        {screen === 'drills' && (
+          <motion.div
+            key="drills"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+          >
+            <DrillsPage onExit={() => setScreen('home')} username={username} />
           </motion.div>
         )}
       </AnimatePresence>

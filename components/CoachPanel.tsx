@@ -87,7 +87,7 @@ export default function CoachPanel() {
     <div className="rounded-2xl border bg-white border-gray-200 dark:bg-white/5 dark:border-white/10 overflow-hidden">
       {/* Banner */}
       <div className="px-4 pt-4 pb-3 border-b border-amber-200 dark:border-amber-500/20 bg-amber-50 dark:bg-amber-500/10">
-        <div className="text-base font-bold text-amber-700 dark:text-amber-400">🤖 AI Coach</div>
+        <div className="text-base font-bold text-amber-700 dark:text-amber-400">Tactics & Strategy</div>
         <div className="text-xs text-amber-600 dark:text-amber-500 mt-0.5">Learn tactics to improve your game</div>
       </div>
 
