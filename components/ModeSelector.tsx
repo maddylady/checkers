@@ -2,9 +2,17 @@
 
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Bot, Users, Globe, ChevronRight, Wifi, Zap, Shuffle } from 'lucide-react';
+import { Bot, Users, Globe, ChevronRight, Wifi, Zap, Shuffle, Trophy } from 'lucide-react';
 import type { Difficulty } from '@/lib/ai';
 import type { RulesVariant } from '@/lib/game-logic';
+import {
+  getGauntletState,
+  startGauntlet,
+  markGauntletWin,
+  resetGauntlet,
+  isGauntletComplete,
+  GAUNTLET_ORDER,
+} from '@/lib/gauntlet';
 
 export type GameMode = 'ai' | 'local' | 'online' | 'mines' | 'roulette';
 
@@ -22,6 +30,8 @@ interface ModeSelectorProps {
     botElo?: number,
     timeControl?: TimeControl,
     rulesVariant?: RulesVariant,
+    isGauntlet?: boolean,
+    gauntletBotId?: string,
   ) => void;
   onStepChange?: (step: string) => void;
   rulesVariant?: RulesVariant;
@@ -177,6 +187,7 @@ export default function ModeSelector({ onSelect, onStepChange, rulesVariant = 'a
   const [step, setStep] = useState<Step>('mode');
   const [pendingMode, setPendingMode] = useState<GameMode>('ai');
   const [pendingBot, setPendingBot] = useState<BotCharacter | null>(null);
+  const [pendingIsGauntlet, setPendingIsGauntlet] = useState(false);
   const [joinCode, setJoinCode] = useState('');
   const [timeControlId, setTimeControlId] = useState('move30');
   const [moveExpiry, setMoveExpiry] = useState<'random' | 'lose'>('random');
@@ -201,7 +212,17 @@ export default function ModeSelector({ onSelect, onStepChange, rulesVariant = 'a
     if (pendingMode === 'local') {
       onSelect('local', undefined, undefined, undefined, undefined, tc, localVariant);
     } else if (pendingBot) {
-      onSelect(pendingMode, pendingBot.difficulty, undefined, pendingBot.name, pendingBot.elo, tc, localVariant);
+      onSelect(
+        pendingMode,
+        pendingBot.difficulty,
+        undefined,
+        pendingBot.name,
+        pendingBot.elo,
+        tc,
+        localVariant,
+        pendingIsGauntlet,
+        pendingIsGauntlet ? pendingBot.id : undefined,
+      );
     }
   };
 
@@ -213,16 +234,25 @@ export default function ModeSelector({ onSelect, onStepChange, rulesVariant = 'a
   const handleJoinRoom = () => { if (joinCode.length === 6) onSelect('online', undefined, joinCode.toUpperCase()); };
 
   const handleBack = () => {
-    if (step === 'pregame') changeStep(pendingBot ? 'bots' : 'mode');
-    else changeStep('mode');
+    if (step === 'pregame') {
+      if (pendingIsGauntlet) {
+        setPendingIsGauntlet(false);
+        changeStep('mode');
+      } else {
+        changeStep(pendingBot ? 'bots' : 'mode');
+      }
+    } else {
+      changeStep('mode');
+    }
   };
 
   const modes = [
-    { mode: 'ai' as GameMode,      icon: <Bot size={28} />,     title: 'vs Bots',      desc: 'Challenge 22 unique bots — from beginners to legends', color: 'from-purple-600 to-blue-600',   badge: 'Single Player' },
-    { mode: 'local' as GameMode,   icon: <Users size={28} />,   title: 'Local 2P',     desc: 'Play with a friend on the same screen',                color: 'from-amber-600 to-orange-600',  badge: 'Same Device'   },
-    { mode: 'online' as GameMode,  icon: <Globe size={28} />,   title: 'Online',       desc: 'Play with anyone, anywhere via room code',             color: 'from-green-600 to-teal-600',    badge: 'Multiplayer'   },
-    { mode: 'mines' as GameMode,   icon: <Zap size={28} />,     title: 'Mines Mode',   desc: 'Hidden mines detonate when landed on.',                color: 'from-orange-600 to-red-600',    badge: 'Chaos'         },
-    { mode: 'roulette' as GameMode, icon: <Shuffle size={28} />, title: 'Roulette',    desc: 'Spin the wheel each turn. Extra move, skip, or normal?', color: 'from-purple-600 to-pink-600', badge: 'Luck'          },
+    { mode: 'ai' as GameMode,        icon: <Bot size={28} />,     title: 'vs Bots',      desc: 'Challenge 22 unique bots — from beginners to legends', color: 'from-purple-600 to-blue-600',   badge: 'Single Player', isGauntlet: false },
+    { mode: 'ai' as GameMode,        icon: <Trophy size={28} />,  title: 'Gauntlet',     desc: 'Beat all 22 bots in order. From Chicky to DeepCheck.', color: 'from-amber-600 to-red-600',     badge: 'Tournament',    isGauntlet: true  },
+    { mode: 'local' as GameMode,     icon: <Users size={28} />,   title: 'Local 2P',     desc: 'Play with a friend on the same screen',                color: 'from-amber-600 to-orange-600',  badge: 'Same Device',   isGauntlet: false },
+    { mode: 'online' as GameMode,    icon: <Globe size={28} />,   title: 'Online',       desc: 'Play with anyone, anywhere via room code',             color: 'from-green-600 to-teal-600',    badge: 'Multiplayer',   isGauntlet: false },
+    { mode: 'mines' as GameMode,     icon: <Zap size={28} />,     title: 'Mines Mode',   desc: 'Hidden mines detonate when landed on.',                color: 'from-orange-600 to-red-600',    badge: 'Chaos',         isGauntlet: false },
+    { mode: 'roulette' as GameMode,  icon: <Shuffle size={28} />, title: 'Roulette',     desc: 'Spin the wheel each turn. Extra move, skip, or normal?', color: 'from-purple-600 to-pink-600', badge: 'Luck',          isGauntlet: false },
   ];
 
   return (
@@ -236,15 +266,38 @@ export default function ModeSelector({ onSelect, onStepChange, rulesVariant = 'a
               <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">Choose Game Mode</h2>
               <p className="text-gray-500 dark:text-gray-400">How do you want to play?</p>
             </div>
-            {modes.map(({ mode, icon, title, desc, color, badge }) => (
+            {modes.map(({ mode, icon, title, desc, color, badge, isGauntlet: modeIsGauntlet }) => (
               <motion.button
-                key={mode}
+                key={title}
                 whileHover={{ scale: 1.01 }}
                 whileTap={{ scale: 0.98 }}
                 onClick={() => {
-                  if (mode === 'ai' || mode === 'mines' || mode === 'roulette') { setPendingMode(mode); changeStep('bots'); }
-                  else if (mode === 'online') changeStep('online');
-                  else { setPendingMode('local'); setPendingBot(null); changeStep('pregame'); }
+                  if (modeIsGauntlet) {
+                    // Gauntlet mode: find current bot and jump to pregame
+                    let gs = getGauntletState();
+                    if (!gs.active || !gs.currentBotId) {
+                      startGauntlet();
+                      gs = getGauntletState();
+                    }
+                    const nextBot = bots.find(b => b.id === gs.currentBotId);
+                    if (nextBot) {
+                      setPendingMode('ai');
+                      setPendingBot(nextBot);
+                      setPendingIsGauntlet(true);
+                      changeStep('pregame');
+                    }
+                  } else if (mode === 'ai' || mode === 'mines' || mode === 'roulette') {
+                    setPendingMode(mode);
+                    setPendingIsGauntlet(false);
+                    changeStep('bots');
+                  } else if (mode === 'online') {
+                    changeStep('online');
+                  } else {
+                    setPendingMode('local');
+                    setPendingBot(null);
+                    setPendingIsGauntlet(false);
+                    changeStep('pregame');
+                  }
                 }}
                 className="w-full flex items-center gap-4 p-5 rounded-2xl bg-white dark:bg-white/5 hover:bg-gray-50 dark:hover:bg-white/10 border border-gray-100 dark:border-white/10 hover:border-gray-300 dark:hover:border-white/20 transition-all group text-left"
               >
@@ -253,6 +306,18 @@ export default function ModeSelector({ onSelect, onStepChange, rulesVariant = 'a
                   <div className="flex items-center gap-2 mb-1">
                     <span className="font-bold text-gray-900 dark:text-white text-lg">{title}</span>
                     <span className="text-xs px-2 py-0.5 rounded-full bg-gray-100 dark:bg-white/10 text-gray-500 dark:text-gray-400">{badge}</span>
+                    {modeIsGauntlet && (() => {
+                      const gs = getGauntletState();
+                      const beaten = gs.beatenIds.length;
+                      if (beaten > 0) {
+                        return (
+                          <span className="text-xs px-2 py-0.5 rounded-full bg-amber-500/15 text-amber-400 font-semibold">
+                            {beaten}/22
+                          </span>
+                        );
+                      }
+                      return null;
+                    })()}
                   </div>
                   <p className="text-gray-500 dark:text-gray-400 text-sm">{desc}</p>
                 </div>
@@ -334,6 +399,74 @@ export default function ModeSelector({ onSelect, onStepChange, rulesVariant = 'a
               <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-1">Game Setup</h2>
               <p className="text-gray-500 dark:text-gray-400 text-sm">Configure before you play</p>
             </div>
+
+            {/* Gauntlet progress banner */}
+            {pendingIsGauntlet && (() => {
+              const gs = getGauntletState();
+              const beaten = gs.beatenIds.length;
+              const total = GAUNTLET_ORDER.length;
+              const botNum = beaten + 1;
+              const pct = Math.round((beaten / total) * 100);
+              const complete = isGauntletComplete();
+              return (
+                <div className="rounded-2xl border border-amber-500/30 bg-amber-500/10 p-4">
+                  <div className="flex items-center justify-between mb-2">
+                    <div className="flex items-center gap-2">
+                      <Trophy size={16} className="text-amber-400" />
+                      <span className="text-amber-400 font-bold text-sm">Gauntlet Mode</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-amber-300 text-xs font-semibold">
+                        {complete ? 'COMPLETED!' : `Bot ${botNum} of ${total}`}
+                      </span>
+                      <button
+                        onClick={() => {
+                          if (confirm('Mark this bot as beaten and advance to the next one?')) {
+                            if (gs.currentBotId) {
+                              markGauntletWin(gs.currentBotId);
+                              const newGs = getGauntletState();
+                              const nextBot = bots.find(b => b.id === newGs.currentBotId);
+                              if (nextBot) {
+                                setPendingBot(nextBot);
+                              } else {
+                                setPendingIsGauntlet(false);
+                                changeStep('mode');
+                              }
+                            }
+                          }
+                        }}
+                        className="text-[10px] px-2 py-0.5 rounded-lg bg-amber-500/20 text-amber-400 hover:bg-amber-500/30 transition-colors border border-amber-500/30"
+                      >
+                        Won? Advance
+                      </button>
+                      <button
+                        onClick={() => {
+                          if (confirm('Reset gauntlet progress?')) {
+                            resetGauntlet();
+                            setPendingIsGauntlet(false);
+                            changeStep('mode');
+                          }
+                        }}
+                        className="text-[10px] px-2 py-0.5 rounded-lg bg-red-500/10 text-red-400 hover:bg-red-500/20 transition-colors border border-red-500/20"
+                      >
+                        Reset
+                      </button>
+                    </div>
+                  </div>
+                  {/* Progress bar */}
+                  <div className="h-2 rounded-full bg-amber-900/40 overflow-hidden">
+                    <div
+                      className="h-full rounded-full bg-gradient-to-r from-amber-500 to-red-500 transition-all"
+                      style={{ width: `${pct}%` }}
+                    />
+                  </div>
+                  <div className="mt-1 flex justify-between text-[10px] text-amber-400/60">
+                    <span>{beaten} beaten</span>
+                    <span>{total - beaten} remaining</span>
+                  </div>
+                </div>
+              );
+            })()}
 
             {/* Opponent card */}
             <div className="flex items-center gap-3 p-4 rounded-2xl bg-white dark:bg-white/5 border border-gray-100 dark:border-white/10">

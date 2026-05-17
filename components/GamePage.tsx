@@ -40,6 +40,7 @@ interface GamePageProps {
   onExit: () => void;
   rulesVariant?: RulesVariant;
   timeControl?: TimeControl;
+  onGameEnd?: (result: 'win' | 'loss' | 'draw') => void;
 }
 
 export default function GamePage({
@@ -53,6 +54,7 @@ export default function GamePage({
   onExit,
   rulesVariant = 'american',
   timeControl,
+  onGameEnd,
 }: GamePageProps) {
   const [gameState, setGameState] = useState<GameState>(createInitialGameState(rulesVariant));
   const [playerColor, setPlayerColor] = useState<Player>(initialPlayerColor || 'red');
@@ -391,6 +393,7 @@ export default function GamePage({
       recordGameResult(result, mode, opp, gameState.moveHistory.length, duration, extras);
 
       const notes = analyzeGame(gameState.moveHistory);
+      onGameEnd?.(result);
       const t = setTimeout(() => {
         setAnalysisNotes(notes);
         setShowWin(true);
@@ -845,6 +848,8 @@ export default function GamePage({
             onRestart={handleRestart}
             onMenu={onExit}
             analysisNotes={analysisNotes}
+            boardHistory={boardHistoryRef.current}
+            moveHistory={gameState.moveHistory}
           />
         )}
       </AnimatePresence>

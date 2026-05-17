@@ -11,6 +11,7 @@ import GamePage from '@/components/GamePage';
 import Leaderboard from '@/components/Leaderboard';
 import UsernameModal from '@/components/UsernameModal';
 import DailyChallenges from '@/components/DailyChallenges';
+import CoachPanel from '@/components/CoachPanel';
 import {
   getUsername,
   getCity,
@@ -25,6 +26,7 @@ import {
   getRulesVariant,
   setRulesVariant,
 } from '@/lib/storage';
+import { markGauntletWin, isGauntletComplete } from '@/lib/gauntlet';
 import { fetchLeaderboard, onAuthStateChange, type AuthUser } from '@/lib/supabase';
 import type { Difficulty } from '@/lib/ai';
 import type { PlayerStats, GameRecord, RulesVariant } from '@/lib/game-logic';
@@ -46,7 +48,7 @@ export default function HomePage() {
   const [leaderboard, setLeaderboard] = useState<PlayerStats[]>([]);
   const [stats, setStats] = useState<PlayerStats | null>(null);
   const [history, setHistory] = useState<GameRecord[]>([]);
-  const [sidebarTab, setSidebarTab] = useState<'leaderboard' | 'stats' | 'challenges' | 'rules'>('leaderboard');
+  const [sidebarTab, setSidebarTab] = useState<'leaderboard' | 'stats' | 'challenges' | 'rules' | 'coach'>('leaderboard');
   const [googleUser, setGoogleUser] = useState<AuthUser | null>(null);
   const [coins, setCoins] = useState(0);
   const [showShop, setShowShop] = useState(false);
@@ -58,6 +60,7 @@ export default function HomePage() {
   const [viewingPlayer, setViewingPlayer] = useState<import('@/lib/game-logic').PlayerStats | null>(null);
   const [selectorStep, setSelectorStep] = useState<string>('mode');
   const [timeControl, setTimeControl] = useState<TimeControl>({ type: 'move', seconds: 30, expiry: 'random' });
+  const [gauntletBotId, setGauntletBotId] = useState<string | null>(null);
 
   // Load all localStorage state after hydration to avoid server/client mismatch
   useEffect(() => {
@@ -116,7 +119,7 @@ export default function HomePage() {
     setStats(getStats());
   };
 
-  const handleModeSelect = (mode: GameMode, diff?: Difficulty, code?: string, name?: string, elo?: number, tc?: TimeControl, variant?: RulesVariant) => {
+  const handleModeSelect = (mode: GameMode, diff?: Difficulty, code?: string, name?: string, elo?: number, tc?: TimeControl, variant?: RulesVariant, isGauntlet?: boolean, gBotId?: string) => {
     setGameMode(mode);
     if (diff) setDifficulty(diff);
     if (code) setRoomCode(code);
@@ -124,7 +127,19 @@ export default function HomePage() {
     setBotElo(elo);
     if (tc) setTimeControl(tc);
     if (variant) setRulesVariantState(variant);
+    setGauntletBotId(isGauntlet && gBotId ? gBotId : null);
     setScreen('game');
+  };
+
+  const handleGameEnd = (result: 'win' | 'loss' | 'draw') => {
+    if (gauntletBotId && result === 'win') {
+      markGauntletWin(gauntletBotId);
+      if (isGauntletComplete()) {
+        // Will show on next render — user sees win screen first
+        console.log('Gauntlet complete!');
+      }
+    }
+    setGauntletBotId(null);
   };
 
   const handleExitGame = () => {
@@ -219,6 +234,7 @@ export default function HomePage() {
                       { id: 'stats',       label: '📊 Stats' },
                       { id: 'challenges',  label: '🎯 Daily' },
                       { id: 'rules',       label: '📖 Rules' },
+                      { id: 'coach',       label: '🎓 Coach' },
                     ] as const).map(tab => (
                       <button
                         key={tab.id}
@@ -330,6 +346,12 @@ export default function HomePage() {
                       </motion.div>
                     )}
 
+                    {sidebarTab === 'coach' && (
+                      <motion.div key="coach" initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}>
+                        <CoachPanel />
+                      </motion.div>
+                    )}
+
                     {sidebarTab === 'rules' && (
                       <motion.div key="rules" initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}>
                         <div className="rounded-2xl border p-4 bg-white border-gray-200 dark:bg-white/5 dark:border-white/10 space-y-4">
@@ -426,6 +448,7 @@ export default function HomePage() {
               botName={botName}
               botElo={botElo}
               onExit={handleExitGame}
+              onGameEnd={handleGameEnd}
               rulesVariant={rulesVariant}
               timeControl={timeControl}
             />

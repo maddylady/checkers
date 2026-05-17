@@ -1,9 +1,11 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import type { Player, AnalysisNote } from '@/lib/game-logic';
-import { Trophy, RefreshCw, ChevronDown, ChevronUp, AlertTriangle, Info, XCircle } from 'lucide-react';
+import { motion } from 'framer-motion';
+import type { Player, AnalysisNote, Piece, Move } from '@/lib/game-logic';
+import { Trophy, RefreshCw, Info, AlertTriangle, XCircle, Share2 } from 'lucide-react';
+
+type BoardGrid = (Piece | null)[][];
 
 interface WinScreenProps {
   winner: 'red' | 'black' | 'draw';
@@ -11,6 +13,8 @@ interface WinScreenProps {
   onRestart: () => void;
   onMenu: () => void;
   analysisNotes?: AnalysisNote[];
+  boardHistory?: BoardGrid[];
+  moveHistory?: Move[];
 }
 
 // Simple canvas-based confetti
@@ -84,14 +88,90 @@ function useConfetti(active: boolean) {
   return canvasRef;
 }
 
+// Mini board for game review — 240x240px (30px per cell)
+interface MiniBoardProps {
+  board: BoardGrid;
+  highlightFrom?: [number, number];
+  highlightTo?: [number, number];
+  captures?: [number, number][];
+}
+
+function MiniBoard({ board, highlightFrom, highlightTo, captures = [] }: MiniBoardProps) {
+  const captureSet = new Set(captures.map(([r, c]) => `${r},${c}`));
+
+  return (
+    <div
+      className="inline-grid border border-gray-300 dark:border-gray-600 rounded overflow-hidden"
+      style={{ gridTemplateColumns: 'repeat(8, 30px)', width: 240, height: 240 }}
+    >
+      {Array.from({ length: 8 }, (_, row) =>
+        Array.from({ length: 8 }, (_, col) => {
+          const isDark = (row + col) % 2 === 1;
+          const piece = board[row]?.[col] ?? null;
+          const fromKey = highlightFrom ? `${highlightFrom[0]},${highlightFrom[1]}` : '';
+          const toKey = highlightTo ? `${highlightTo[0]},${highlightTo[1]}` : '';
+          const cellKey = `${row},${col}`;
+          const isFrom = cellKey === fromKey;
+          const isTo = cellKey === toKey;
+          const isCaptured = captureSet.has(cellKey);
+
+          let cellBg = isDark
+            ? 'bg-slate-600 dark:bg-slate-700'
+            : 'bg-slate-200 dark:bg-slate-400';
+
+          if (isTo && isDark) cellBg = 'bg-amber-400/70';
+          else if (isFrom && isDark) cellBg = 'bg-amber-400/50';
+          else if (isCaptured && isDark) cellBg = 'bg-red-400/30';
+
+          return (
+            <div
+              key={cellKey}
+              className={`relative flex items-center justify-center ${cellBg}`}
+              style={{ width: 30, height: 30 }}
+            >
+              {/* Overlay highlight for light squares */}
+              {(isFrom || isTo || isCaptured) && !isDark && (
+                <div
+                  className={`absolute inset-0 ${
+                    isTo ? 'bg-amber-400/70' : isFrom ? 'bg-amber-400/50' : 'bg-red-400/30'
+                  }`}
+                />
+              )}
+              {piece && (
+                <div
+                  className={`relative z-10 w-5 h-5 rounded-full flex items-center justify-center text-[9px] font-bold
+                    ${piece.player === 'red'
+                      ? 'bg-gradient-to-br from-red-400 to-red-700 border border-red-300'
+                      : 'bg-gradient-to-br from-gray-500 to-gray-900 border border-gray-400'
+                    }
+                    ${piece.type === 'king' ? 'ring-1 ring-amber-400' : ''}
+                  `}
+                >
+                  {piece.type === 'king' && (
+                    <span className="text-amber-300 leading-none" style={{ fontSize: 8 }}>♛</span>
+                  )}
+                </div>
+              )}
+            </div>
+          );
+        })
+      )}
+    </div>
+  );
+}
+
 export default function WinScreen({
   winner,
   playerColor,
   onRestart,
   onMenu,
   analysisNotes = [],
+  boardHistory,
+  moveHistory,
 }: WinScreenProps) {
-  const [showAnalysis, setShowAnalysis] = useState(false);
+  const [reviewIndex, setReviewIndex] = useState<number | null>(null);
+  const [copied, setCopied] = useState(false);
+
   const isWin = winner !== 'draw' && winner === playerColor;
   const isDraw = winner === 'draw';
 
@@ -118,6 +198,48 @@ export default function WinScreen({
     info: <Info size={14} className="text-blue-400 flex-shrink-0 mt-0.5" />,
     warning: <AlertTriangle size={14} className="text-yellow-400 flex-shrink-0 mt-0.5" />,
     error: <XCircle size={14} className="text-red-400 flex-shrink-0 mt-0.5" />,
+  };
+
+  const severityCallout = {
+    info: 'bg-blue-50 dark:bg-blue-900/30 border-blue-200 dark:border-blue-700 text-blue-800 dark:text-blue-200',
+    warning: 'bg-yellow-50 dark:bg-yellow-900/30 border-yellow-200 dark:border-yellow-700 text-yellow-800 dark:text-yellow-200',
+    error: 'bg-red-50 dark:bg-red-900/30 border-red-200 dark:border-red-700 text-red-800 dark:text-red-200',
+  };
+
+  const hasReview = !!(boardHistory && boardHistory.length > 0 && moveHistory && moveHistory.length > 0);
+
+  // Current board/move for review
+  const reviewBoard = hasReview && reviewIndex !== null ? boardHistory![reviewIndex] : null;
+  const reviewMove = hasReview && reviewIndex !== null && reviewIndex > 0 ? moveHistory![reviewIndex - 1] : null;
+  const reviewNote = hasReview && reviewIndex !== null
+    ? analysisNotes.find(n => n.moveIndex === reviewIndex)
+    : null;
+
+  const handleShare = async () => {
+    let text: string;
+    if (isDraw) {
+      text = 'Just drew on CheckMate Arena!';
+    } else if (isWin) {
+      text = `I just beat ${winner === 'red' ? 'Black' : 'Red'} on CheckMate Arena! 🎮 Play at checkmatearena.com`;
+    } else {
+      text = 'CheckMate Arena just humbled me 😅 Can you do better?';
+    }
+
+    if (navigator.share) {
+      try {
+        await navigator.share({ text });
+      } catch {
+        // user cancelled or share failed
+      }
+    } else {
+      try {
+        await navigator.clipboard.writeText(text);
+        setCopied(true);
+        setTimeout(() => setCopied(false), 2000);
+      } catch {
+        // clipboard failed silently
+      }
+    }
   };
 
   return (
@@ -196,48 +318,91 @@ export default function WinScreen({
             </motion.div>
           )}
 
-          {/* AI Analysis */}
-          {analysisNotes.length > 0 && (
+          {/* Game Review */}
+          {hasReview && (
             <motion.div
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.5 }}
-              className="mb-4 border border-gray-200 dark:border-white/10 rounded-2xl overflow-hidden"
+              className="mb-4"
             >
-              <button
-                onClick={() => setShowAnalysis(!showAnalysis)}
-                className="w-full flex items-center justify-between p-4 text-left hover:bg-gray-50 dark:hover:bg-white/5 transition-colors"
-              >
-                <span className="font-semibold text-gray-900 dark:text-white flex items-center gap-2">
-                  🧠 AI Coach Analysis
-                </span>
-                {showAnalysis ? <ChevronUp size={16} className="text-gray-500 dark:text-gray-400" /> : <ChevronDown size={16} className="text-gray-500 dark:text-gray-400" />}
-              </button>
-
-              <AnimatePresence>
-                {showAnalysis && (
-                  <motion.div
-                    initial={{ height: 0, opacity: 0 }}
-                    animate={{ height: 'auto', opacity: 1 }}
-                    exit={{ height: 0, opacity: 0 }}
-                    className="overflow-hidden"
-                  >
-                    <div className="px-4 pb-4 space-y-2 max-h-48 overflow-y-auto">
-                      {analysisNotes.slice(0, 8).map((note, i) => (
-                        <div key={i} className="flex items-start gap-2 text-sm text-gray-700 dark:text-gray-300">
-                          {severityIcon[note.severity]}
-                          <span>{note.message}</span>
-                        </div>
-                      ))}
+              {reviewIndex === null ? (
+                <button
+                  onClick={() => setReviewIndex(0)}
+                  className="w-full flex items-center justify-center gap-2 py-3 rounded-2xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-white/5 hover:bg-gray-100 dark:hover:bg-white/10 text-gray-700 dark:text-gray-300 font-semibold transition-colors"
+                >
+                  <span>🎬</span>
+                  Review Game
+                </button>
+              ) : (
+                <div className="border border-gray-200 dark:border-white/10 rounded-2xl overflow-hidden bg-gray-50 dark:bg-white/5">
+                  <div className="p-4">
+                    {/* Board */}
+                    <div className="flex justify-center mb-3">
+                      {reviewBoard && (
+                        <MiniBoard
+                          board={reviewBoard}
+                          highlightFrom={reviewMove?.from}
+                          highlightTo={reviewMove?.to}
+                          captures={reviewMove?.captures}
+                        />
+                      )}
                     </div>
-                  </motion.div>
-                )}
-              </AnimatePresence>
+
+                    {/* Move label */}
+                    <div className="text-center text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">
+                      {reviewIndex === 0
+                        ? 'Starting Position'
+                        : `Move ${reviewIndex} / ${moveHistory!.length}`}
+                    </div>
+
+                    {/* Navigation */}
+                    <div className="flex items-center justify-center gap-2 mb-3">
+                      <button
+                        onClick={() => setReviewIndex(0)}
+                        disabled={reviewIndex === 0}
+                        className="px-2 py-1 rounded-lg text-xs bg-gray-100 dark:bg-white/10 hover:bg-gray-200 dark:hover:bg-white/20 text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition-colors disabled:opacity-30"
+                      >⏮</button>
+                      <button
+                        onClick={() => setReviewIndex(prev => Math.max(0, (prev ?? 0) - 1))}
+                        disabled={reviewIndex === 0}
+                        className="px-2 py-1 rounded-lg text-xs bg-gray-100 dark:bg-white/10 hover:bg-gray-200 dark:hover:bg-white/20 text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition-colors disabled:opacity-30"
+                      >◀</button>
+                      <button
+                        onClick={() => setReviewIndex(prev => Math.min(moveHistory!.length, (prev ?? 0) + 1))}
+                        disabled={reviewIndex === moveHistory!.length}
+                        className="px-2 py-1 rounded-lg text-xs bg-gray-100 dark:bg-white/10 hover:bg-gray-200 dark:hover:bg-white/20 text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition-colors disabled:opacity-30"
+                      >▶</button>
+                      <button
+                        onClick={() => setReviewIndex(moveHistory!.length)}
+                        disabled={reviewIndex === moveHistory!.length}
+                        className="px-2 py-1 rounded-lg text-xs bg-gray-100 dark:bg-white/10 hover:bg-gray-200 dark:hover:bg-white/20 text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition-colors disabled:opacity-30"
+                      >⏭</button>
+                    </div>
+
+                    {/* Analysis note callout */}
+                    {reviewNote && (
+                      <div className={`flex items-start gap-2 text-sm p-3 rounded-xl border mb-3 ${severityCallout[reviewNote.severity]}`}>
+                        {severityIcon[reviewNote.severity]}
+                        <span>{reviewNote.message}</span>
+                      </div>
+                    )}
+
+                    {/* Close button */}
+                    <button
+                      onClick={() => setReviewIndex(null)}
+                      className="w-full py-2 rounded-xl text-sm text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-white/10 transition-colors"
+                    >
+                      Close Review
+                    </button>
+                  </div>
+                </div>
+              )}
             </motion.div>
           )}
 
           {/* Actions */}
-          <div className="flex gap-3">
+          <div className="flex gap-3 flex-wrap">
             <motion.button
               whileHover={{ scale: 1.03 }}
               whileTap={{ scale: 0.97 }}
@@ -254,6 +419,16 @@ export default function WinScreen({
               className="flex-1 py-3 rounded-2xl bg-gray-100 dark:bg-white/10 hover:bg-gray-200 dark:hover:bg-white/20 text-gray-900 dark:text-white font-semibold transition-all border border-gray-200 dark:border-white/10"
             >
               Main Menu
+            </motion.button>
+            <motion.button
+              whileHover={{ scale: 1.03 }}
+              whileTap={{ scale: 0.97 }}
+              onClick={handleShare}
+              title="Share result"
+              className="flex items-center justify-center gap-2 px-4 py-3 rounded-2xl bg-gray-100 dark:bg-white/10 hover:bg-gray-200 dark:hover:bg-white/20 text-gray-900 dark:text-white font-semibold transition-all border border-gray-200 dark:border-white/10"
+            >
+              <Share2 size={16} />
+              {copied ? '✓ Copied!' : 'Share'}
             </motion.button>
           </div>
         </div>
