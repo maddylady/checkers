@@ -9,19 +9,21 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey);
 async function ensureAuth(): Promise<string | null> {
   try {
     const { data: { session } } = await supabase.auth.getSession();
-    if (session?.user) return session.user.id;
+    if (session?.user) { console.log('[Supabase] existing session:', session.user.id); return session.user.id; }
     const { data, error } = await supabase.auth.signInAnonymously();
-    if (error) return null;
+    if (error) { console.error('[Supabase] signInAnonymously error:', error); return null; }
+    console.log('[Supabase] new anon user:', data.user?.id);
     return data.user?.id ?? null;
-  } catch {
+  } catch (e) {
+    console.error('[Supabase] ensureAuth exception:', e);
     return null;
   }
 }
 
 export async function syncPlayerStats(stats: PlayerStats): Promise<void> {
   const userId = await ensureAuth();
-  if (!userId) return;
-  await supabase.from('player_stats').upsert({
+  if (!userId) { console.warn('[Supabase] auth failed — skipping stats sync'); return; }
+  const { error } = await supabase.from('player_stats').upsert({
     user_id: userId,
     username: stats.username,
     city: stats.city ?? null,
@@ -31,6 +33,7 @@ export async function syncPlayerStats(stats: PlayerStats): Promise<void> {
     games_played: stats.gamesPlayed,
     updated_at: new Date().toISOString(),
   }, { onConflict: 'user_id' });
+  if (error) console.error('[Supabase] player_stats upsert error:', error);
 }
 
 export async function addGameRecord(record: {
@@ -42,7 +45,8 @@ export async function addGameRecord(record: {
 }): Promise<void> {
   const userId = await ensureAuth();
   if (!userId) return;
-  await supabase.from('game_history').insert({ user_id: userId, ...record });
+  const { error } = await supabase.from('game_history').insert({ user_id: userId, ...record });
+  if (error) console.error('[Supabase] game_history insert error:', error);
 }
 
 export async function fetchLeaderboard(): Promise<PlayerStats[]> {
