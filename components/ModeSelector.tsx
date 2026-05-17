@@ -273,7 +273,7 @@ export default function ModeSelector({ onSelect, onStepChange, rulesVariant = 'a
               {tiers.map(tier => (
                 <div key={tier.value}>
                   <div className={`text-xs font-bold uppercase tracking-widest mb-3 px-1 ${tier.color}`}>{tier.label}</div>
-                  <div className="grid grid-cols-2 gap-2.5">
+                  <div className="grid grid-cols-[repeat(auto-fill,minmax(130px,1fr))] gap-2.5">
                     {bots.filter(b => b.difficulty === tier.value).map((bot, i) => (
                       <motion.button
                         key={bot.id}
