@@ -13,11 +13,16 @@ interface BoardProps {
 }
 
 export default function Board({ gameState, onCellClick, flipped = false, disabled = false }: BoardProps) {
-  const { board, selectedCell, validMoves } = gameState;
+  const { board, selectedCell, validMoves, moveHistory } = gameState;
 
   const selectedMoves = selectedCell
     ? getMovesForCell(validMoves, selectedCell[0], selectedCell[1])
     : [];
+
+  const lastMove = moveHistory.length > 0 ? moveHistory[moveHistory.length - 1] : null;
+  const lastMoveSquares = lastMove
+    ? new Set([`${lastMove.from[0]},${lastMove.from[1]}`, `${lastMove.to[0]},${lastMove.to[1]}`])
+    : new Set<string>();
 
   const validTargets = new Set(selectedMoves.map(m => `${m.to[0]},${m.to[1]}`));
   const selectableCells = new Set(validMoves.map(m => `${m.from[0]},${m.from[1]}`));
@@ -59,6 +64,8 @@ export default function Board({ gameState, onCellClick, flipped = false, disable
               const isDark = (row + col) % 2 === 1;
               const piece = board[row][col];
               const isSelected = selectedCell?.[0] === row && selectedCell?.[1] === col;
+              const isLastMove = lastMoveSquares.has(`${row},${col}`);
+              const isLastMoveTo = lastMove && lastMove.to[0] === row && lastMove.to[1] === col;
               const isValidTarget = validTargets.has(`${row},${col}`);
               const isSelectable = selectableCells.has(`${row},${col}`) && !disabled;
               const key = `${row}-${col}`;
@@ -105,6 +112,12 @@ export default function Board({ gameState, onCellClick, flipped = false, disable
                   )}
 
                   {/* Last move highlight */}
+                  {isLastMove && isDark && !isSelected && (
+                    <div className={`absolute inset-0 pointer-events-none ${
+                      isLastMoveTo ? 'bg-blue-400/30' : 'bg-blue-400/15'
+                    }`} />
+                  )}
+
                   {/* Piece */}
                   {piece && (
                     <PieceComponent

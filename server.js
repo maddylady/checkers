@@ -20,8 +20,10 @@ const app = next({ dev, hostname, port });
 const handle = app.getRequestHandler();
 
 // In-memory room state
-// roomCode -> { players: [{ socketId, username, color }], gameState: any }
+// roomCode -> { players: [{ socketId, username, color, connected }], currentTurn, disconnectTimers }
 const rooms = new Map();
+
+const RECONNECT_WINDOW_MS = 30_000;
 
 function normalizeRoomCode(roomCode) {
   if (typeof roomCode !== 'string') return null;
@@ -97,8 +99,9 @@ app.prepare().then(() => {
         // First player — they are red
         socket.join(code);
         rooms.set(code, {
-          players: [{ socketId: socket.id, username: name, color: 'red' }],
+          players: [{ socketId: socket.id, username: name, color: 'red', connected: true }],
           currentTurn: 'red',
+          disconnectTimers: new Map(),
         });
 
         socket.emit('room-joined', { color: 'red' });
@@ -107,18 +110,29 @@ app.prepare().then(() => {
         // Check if this player is reconnecting
         const existing = room.players.find(p => p.username === name);
         if (existing) {
+          // Clear any pending disconnect cleanup timer
+          if (room.disconnectTimers.has(name)) {
+            clearTimeout(room.disconnectTimers.get(name));
+            room.disconnectTimers.delete(name);
+          }
           socket.join(code);
           existing.socketId = socket.id;
+          existing.connected = true;
           const opponent = room.players.find(p => p.username !== name);
           socket.emit('room-joined', {
             color: existing.color,
             opponentName: opponent?.username,
           });
+          if (opponent?.connected) {
+            io.to(opponent.socketId).emit('opponent-reconnected', { username: name });
+          }
           console.log(`[Room] ${name} reconnected to room ${code}`);
           return;
         }
 
-        if (room.players.length >= 2) {
+        // Count connected players only (disconnected slots may still be reserved)
+        const activePlayers = room.players.filter(p => p.connected);
+        if (room.players.length >= 2 && activePlayers.length >= 2) {
           socket.emit('room-full', { message: 'Room is full' });
           return;
         }
@@ -126,7 +140,7 @@ app.prepare().then(() => {
         socket.join(code);
 
         // Second player — they are black
-        room.players.push({ socketId: socket.id, username: name, color: 'black' });
+        room.players.push({ socketId: socket.id, username: name, color: 'black', connected: true });
         room.currentTurn = 'red';
 
         const firstPlayer = room.players[0];
@@ -163,31 +177,44 @@ app.prepare().then(() => {
       room.currentTurn = room.currentTurn === 'red' ? 'black' : 'red';
     });
 
+    socket.on('resign', ({ roomCode }) => {
+      const code = normalizeRoomCode(roomCode);
+      if (!code) return;
+      const room = rooms.get(code);
+      if (!room) return;
+      const player = room.players.find(p => p.socketId === socket.id);
+      if (!player) return;
+      const winner = player.color === 'red' ? 'black' : 'red';
+      io.to(code).emit('game-over', { winner, reason: 'resign' });
+    });
+
     socket.on('disconnect', () => {
       console.log(`[Socket] Disconnected: ${socket.id}`);
 
-      // Find which room this socket was in and notify opponent
       for (const [code, room] of rooms.entries()) {
-        const playerIdx = room.players.findIndex(p => p.socketId === socket.id);
-        if (playerIdx !== -1) {
-          const disconnected = room.players[playerIdx];
-          console.log(`[Room] ${disconnected.username} left room ${code}`);
+        const player = room.players.find(p => p.socketId === socket.id);
+        if (!player) continue;
 
-          // Notify opponents
-          socket.to(code).emit('opponent-disconnected', {
-            username: disconnected.username,
-          });
+        player.connected = false;
+        console.log(`[Room] ${player.username} disconnected from room ${code} — holding for ${RECONNECT_WINDOW_MS / 1000}s`);
 
-          // Remove player from room
-          room.players.splice(playerIdx, 1);
+        // Notify opponent but don't remove the player yet
+        socket.to(code).emit('opponent-disconnected', { username: player.username });
 
-          // Clean up empty rooms
+        // Schedule cleanup after reconnect window
+        const timer = setTimeout(() => {
+          room.players = room.players.filter(p => p.username !== player.username);
+          room.disconnectTimers.delete(player.username);
           if (room.players.length === 0) {
             rooms.delete(code);
-            console.log(`[Room] Room ${code} deleted (empty)`);
+            console.log(`[Room] Room ${code} deleted (empty after timeout)`);
+          } else {
+            console.log(`[Room] ${player.username} removed from ${code} after timeout`);
           }
-          break;
-        }
+        }, RECONNECT_WINDOW_MS);
+
+        room.disconnectTimers.set(player.username, timer);
+        break;
       }
     });
 

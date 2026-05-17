@@ -175,6 +175,7 @@ export default function Navbar({ theme, onThemeToggle, username, onUsernameChang
                 className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-white/10 hover:bg-white/20 transition-colors text-sm text-white"
               >
                 {googleUser.avatar ? (
+                  // eslint-disable-next-line @next/next/no-img-element
                   <img src={googleUser.avatar} alt="avatar" className="w-5 h-5 rounded-full" />
                 ) : (
                   <div className="w-5 h-5 rounded-full bg-blue-500 flex items-center justify-center text-xs font-bold">

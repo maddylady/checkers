@@ -47,7 +47,7 @@ export default function GamePage({
   const [analysisNotes, setAnalysisNotes] = useState<AnalysisNote[]>([]);
   const [turnTimer, setTurnTimer] = useState<number>(30);
   const [copied, setCopied] = useState(false);
-  const [onlineStatus, setOnlineStatus] = useState<'connecting' | 'waiting' | 'playing' | 'error'>('connecting');
+  const [onlineStatus, setOnlineStatus] = useState<'connecting' | 'waiting' | 'playing' | 'opponent-disconnected' | 'error'>('connecting');
   const [opponentName, setOpponentName] = useState<string>('');
 
   // thinking is derived — true whenever it's the AI's turn
@@ -122,6 +122,7 @@ export default function GamePage({
   };
 
   const handleRestart = () => {
+    if (mode === 'online') return; // restart not synchronized in online mode
     if (timerRef.current) clearInterval(timerRef.current);
     setGameState(createInitialGameState());
     setShowWin(false);
@@ -129,27 +130,44 @@ export default function GamePage({
   };
 
   const handleResign = () => {
-    setGameState(prev => ({
-      ...prev,
-      status: prev.currentPlayer === 'red' ? 'black_wins' : 'red_wins',
-    }));
+    if (mode === 'online' && socketRef.current) {
+      socketRef.current.emit('resign', { roomCode });
+      // State update comes via server's game-over event
+    } else {
+      setGameState(prev => ({
+        ...prev,
+        status: prev.currentPlayer === 'red' ? 'black_wins' : 'red_wins',
+      }));
+    }
   };
 
   // ---- Timer ----
   useEffect(() => {
-    if (gameState.status !== 'playing') return;
+    // Only run the timer when it's the local player's active turn
+    const shouldRun =
+      gameState.status === 'playing' &&
+      (mode === 'local' ||
+        (mode === 'ai' && gameState.currentPlayer === playerColor) ||
+        (mode === 'online' && onlineStatus === 'playing' && gameState.currentPlayer === playerColor));
+
+    if (!shouldRun) {
+      if (timerRef.current) clearInterval(timerRef.current);
+      return;
+    }
 
     timerCountRef.current = 30;
-    // Defer initial display update — avoids synchronous setState inside effect
     const resetTimer = setTimeout(() => setTurnTimer(30), 0);
     timerRef.current = setInterval(() => {
       timerCountRef.current -= 1;
       setTurnTimer(timerCountRef.current);
 
       if (timerCountRef.current <= 0) {
-        const moves = getAllValidMoves(gameStateRef.current.board, gameStateRef.current.currentPlayer);
-        if (moves.length > 0) {
-          handleMove(moves[Math.floor(Math.random() * moves.length)]);
+        if (mode !== 'online') {
+          // Auto-pick a random move for local/AI modes
+          const moves = getAllValidMoves(gameStateRef.current.board, gameStateRef.current.currentPlayer);
+          if (moves.length > 0) {
+            handleMove(moves[Math.floor(Math.random() * moves.length)]);
+          }
         }
         timerCountRef.current = 30;
         setTurnTimer(30);
@@ -161,7 +179,7 @@ export default function GamePage({
       if (timerRef.current) clearInterval(timerRef.current);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [gameState.currentPlayer, gameState.status]);
+  }, [gameState.currentPlayer, gameState.status, onlineStatus]);
 
   // ---- AI move ----
   useEffect(() => {
@@ -242,7 +260,18 @@ export default function GamePage({
         });
 
         s.on('opponent-disconnected', () => {
-          setOnlineStatus('error');
+          setOnlineStatus('opponent-disconnected');
+        });
+
+        s.on('opponent-reconnected', () => {
+          setOnlineStatus('playing');
+        });
+
+        s.on('game-over', ({ winner }: { winner: Player }) => {
+          setGameState(prev => ({
+            ...prev,
+            status: winner === 'red' ? 'red_wins' : 'black_wins',
+          }));
         });
 
         s.on('room-full', () => {
@@ -277,7 +306,10 @@ export default function GamePage({
     }
   };
 
-  const isPlayerTurn = mode === 'local' || gameState.currentPlayer === playerColor;
+  const isPlayerTurn =
+    mode === 'local' ||
+    (mode === 'ai' && gameState.currentPlayer === playerColor) ||
+    (mode === 'online' && onlineStatus === 'playing' && gameState.currentPlayer === playerColor);
   const flipBoard = mode === 'local' ? gameState.currentPlayer === 'red' : playerColor === 'red';
 
   return (
@@ -307,13 +339,15 @@ export default function GamePage({
               <div className={`mt-2 text-xs ${
                 onlineStatus === 'waiting' ? 'text-yellow-400 animate-pulse' :
                 onlineStatus === 'playing' ? 'text-green-400' :
+                onlineStatus === 'opponent-disconnected' ? 'text-yellow-400 animate-pulse' :
                 onlineStatus === 'error' ? 'text-red-400' :
                 'text-gray-400'
               }`}>
                 {onlineStatus === 'connecting' ? '● Connecting...' :
                  onlineStatus === 'waiting' ? '● Waiting for opponent...' :
                  onlineStatus === 'playing' ? `● Playing vs ${opponentName}` :
-                 '● Connection lost'}
+                 onlineStatus === 'opponent-disconnected' ? '● Opponent disconnected — waiting 30s...' :
+                 '● Connection failed'}
               </div>
             </div>
           )}

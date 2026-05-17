@@ -139,8 +139,7 @@ export default function HomePage() {
                   transition={{ delay: 0.1 }}
                   className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-amber-500/10 border border-amber-500/20 text-amber-400 text-sm font-medium mb-4"
                 >
-                  <span className="w-2 h-2 rounded-full bg-green-400 animate-pulse" />
-                  Live players online now
+                  Open Beta — v1.0
                 </motion.div>
 
                 {/* Guest nudge banner */}
@@ -206,7 +205,7 @@ export default function HomePage() {
                   className="flex justify-center gap-8 mt-10"
                 >
                   {[
-                    { icon: <Swords size={16} />, label: 'Games Played', value: '50,000+' },
+                    { icon: <Swords size={16} />, label: 'Difficulty Levels', value: '3' },
                     { icon: <Brain size={16} />, label: 'AI Engine', value: 'Minimax α-β' },
                     { icon: <Globe size={16} />, label: 'Real-time', value: 'Socket.io' },
                     { icon: <Shield size={16} />, label: 'Free Forever', value: '100%' },
