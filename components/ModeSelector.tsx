@@ -18,25 +18,107 @@ interface BotCharacter {
   tagline: string;
   difficulty: Difficulty;
   color: string;
+  elo: number;
 }
 
 const bots: BotCharacter[] = [
-  { id: 'grandma', name: 'Grandma Rose', emoji: '👵', tagline: 'Bakes cookies, plays slow', difficulty: 'easy', color: 'from-pink-600 to-rose-500' },
-  { id: 'baby', name: 'Baby Bot', emoji: '🐣', tagline: 'Just hatched, learning fast', difficulty: 'easy', color: 'from-yellow-500 to-amber-400' },
-  { id: 'lucky', name: 'Lucky Larry', emoji: '🎲', tagline: 'Random but surprisingly fun', difficulty: 'easy', color: 'from-teal-600 to-cyan-500' },
-  { id: 'detective', name: 'Detective Dan', emoji: '🕵️', tagline: 'Investigates every move', difficulty: 'medium', color: 'from-blue-600 to-indigo-500' },
-  { id: 'bookworm', name: 'The Bookworm', emoji: '📚', tagline: 'Studied all the openings', difficulty: 'medium', color: 'from-violet-600 to-purple-500' },
-  { id: 'wolf', name: 'Wall St. Wolf', emoji: '🦈', tagline: 'Calculates risk like markets', difficulty: 'medium', color: 'from-slate-600 to-gray-500' },
-  { id: 'deepcheck', name: 'DeepCheck', emoji: '🤖', tagline: 'Minimax at full depth', difficulty: 'hard', color: 'from-red-700 to-red-500' },
-  { id: 'magnus', name: 'Magnus Jr.', emoji: '♟️', tagline: 'Born to dominate the board', difficulty: 'hard', color: 'from-orange-700 to-amber-600' },
-  { id: 'oracle', name: 'The Oracle', emoji: '👁️', tagline: 'Sees your future. It is bleak.', difficulty: 'hard', color: 'from-purple-800 to-violet-600' },
+  // ── Beginner ──────────────────────────────────────────────────────────────
+  {
+    id: 'grandma', name: 'Grandma Rose', emoji: '👵',
+    tagline: 'Offers you tea. Forgets to capture.',
+    difficulty: 'easy', color: 'from-pink-500 to-rose-400', elo: 420,
+  },
+  {
+    id: 'chicky', name: 'Chicky', emoji: '🐣',
+    tagline: 'Day 1. Has absolutely no idea.',
+    difficulty: 'easy', color: 'from-yellow-400 to-amber-300', elo: 350,
+  },
+  {
+    id: 'lucky', name: 'Lucky Larry', emoji: '🎲',
+    tagline: 'Strategy? Never heard of her.',
+    difficulty: 'easy', color: 'from-teal-500 to-cyan-400', elo: 510,
+  },
+  {
+    id: 'jester', name: 'The Jester', emoji: '🤡',
+    tagline: 'One blunder at a time. Laughing all the way.',
+    difficulty: 'easy', color: 'from-orange-400 to-yellow-300', elo: 480,
+  },
+
+  // ── Intermediate ──────────────────────────────────────────────────────────
+  {
+    id: 'detective', name: 'Detective Dan', emoji: '🕵️',
+    tagline: 'Elementary — your pieces are in danger.',
+    difficulty: 'medium', color: 'from-blue-600 to-indigo-500', elo: 1050,
+  },
+  {
+    id: 'gordon', name: 'Gordon Ramsay', emoji: '🧑‍🍳',
+    tagline: 'Your last move was absolutely RAW.',
+    difficulty: 'medium', color: 'from-red-500 to-orange-400', elo: 1120,
+  },
+  {
+    id: 'elon', name: 'Elon Musk', emoji: '🚀',
+    tagline: 'Moves fast. Breaks your game plan.',
+    difficulty: 'medium', color: 'from-slate-600 to-gray-500', elo: 1280,
+  },
+  {
+    id: 'coach', name: 'The Coach', emoji: '🏀',
+    tagline: 'Box out, fundamentals, no excuses.',
+    difficulty: 'medium', color: 'from-amber-600 to-orange-500', elo: 1190,
+  },
+  {
+    id: 'bookworm', name: 'The Bookworm', emoji: '📚',
+    tagline: 'Has memorised every checkers theory.',
+    difficulty: 'medium', color: 'from-violet-600 to-purple-500', elo: 1160,
+  },
+
+  // ── Expert ────────────────────────────────────────────────────────────────
+  {
+    id: 'napoleon', name: 'Napoleon', emoji: '🫅',
+    tagline: 'Every piece an army. Every move a campaign.',
+    difficulty: 'hard', color: 'from-blue-800 to-blue-600', elo: 1820,
+  },
+  {
+    id: 'cleopatra', name: 'Cleopatra', emoji: '👑',
+    tagline: 'Beautiful, cunning, and utterly ruthless.',
+    difficulty: 'hard', color: 'from-amber-600 to-yellow-500', elo: 1870,
+  },
+  {
+    id: 'suntzu', name: 'Sun Tzu', emoji: '☯️',
+    tagline: 'The supreme art is to win without fighting.',
+    difficulty: 'hard', color: 'from-emerald-700 to-teal-500', elo: 1960,
+  },
+  {
+    id: 'genghis', name: 'Genghis Khan', emoji: '⚔️',
+    tagline: 'Overwhelm. Conquer. Leave nothing behind.',
+    difficulty: 'hard', color: 'from-red-800 to-orange-600', elo: 1940,
+  },
+  {
+    id: 'einstein', name: 'Albert Einstein', emoji: '🧠',
+    tagline: 'Your defeat is relatively inevitable.',
+    difficulty: 'hard', color: 'from-indigo-700 to-violet-600', elo: 2080,
+  },
+  {
+    id: 'magnus', name: 'Magnus Jr.', emoji: '♟️',
+    tagline: 'Born to dominate. No off days.',
+    difficulty: 'hard', color: 'from-amber-700 to-amber-500', elo: 2050,
+  },
+  {
+    id: 'oracle', name: 'The Oracle', emoji: '👁️',
+    tagline: 'Already knows how this ends for you.',
+    difficulty: 'hard', color: 'from-purple-900 to-violet-600', elo: 1910,
+  },
+  {
+    id: 'deepcheck', name: 'DeepCheck', emoji: '🤖',
+    tagline: 'Pure minimax, depth 7. There is no escape.',
+    difficulty: 'hard', color: 'from-red-700 to-rose-500', elo: 2200,
+  },
 ];
 
-const tierLabel: Record<Difficulty, string> = {
-  easy: '🟢 Beginner',
-  medium: '🟡 Intermediate',
-  hard: '🔴 Expert',
-};
+const tiers: { value: Difficulty; label: string; color: string }[] = [
+  { value: 'easy',   label: '🟢 Beginner',     color: 'text-green-400' },
+  { value: 'medium', label: '🟡 Intermediate',  color: 'text-yellow-400' },
+  { value: 'hard',   label: '🔴 Expert',        color: 'text-red-400' },
+];
 
 export default function ModeSelector({ onSelect }: ModeSelectorProps) {
   const [step, setStep] = useState<'mode' | 'bots' | 'online'>('mode');
@@ -48,14 +130,9 @@ export default function ModeSelector({ onSelect }: ModeSelectorProps) {
     return Array(6).fill(0).map(() => chars[Math.floor(Math.random() * chars.length)]).join('');
   };
 
-  const handleCreateRoom = () => {
-    onSelect('online', undefined, generateRoomCode());
-  };
-
+  const handleCreateRoom = () => onSelect('online', undefined, generateRoomCode());
   const handleJoinRoom = () => {
-    if (joinCode.length === 6) {
-      onSelect('online', undefined, joinCode.toUpperCase());
-    }
+    if (joinCode.length === 6) onSelect('online', undefined, joinCode.toUpperCase());
   };
 
   const modes = [
@@ -63,7 +140,7 @@ export default function ModeSelector({ onSelect }: ModeSelectorProps) {
       mode: 'ai' as GameMode,
       icon: <Bot size={28} />,
       title: 'vs Bots',
-      desc: 'Challenge one of 9 unique bot characters across 3 skill tiers',
+      desc: 'Challenge 17 unique bots — from beginners to legendary figures',
       color: 'from-purple-600 to-blue-600',
       badge: 'Single Player',
     },
@@ -154,42 +231,58 @@ export default function ModeSelector({ onSelect }: ModeSelectorProps) {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -20 }}
           >
-            <div className="text-center mb-6">
-              <h2 className="text-2xl font-bold text-white mb-2">Pick Your Opponent</h2>
-              <p className="text-gray-400">9 bots, 3 skill tiers — choose your challenge</p>
+            <div className="text-center mb-5">
+              <h2 className="text-2xl font-bold text-white mb-1">Pick Your Opponent</h2>
+              <p className="text-gray-400 text-sm">17 characters · 3 skill tiers</p>
             </div>
 
-            {(['easy', 'medium', 'hard'] as Difficulty[]).map(tier => (
-              <div key={tier} className="mb-5">
-                <div className="text-xs font-semibold text-gray-500 uppercase tracking-widest mb-2 px-1">
-                  {tierLabel[tier]}
+            <div className="max-h-[60vh] overflow-y-auto pr-1 space-y-5 scrollbar-thin">
+              {tiers.map(tier => (
+                <div key={tier.value}>
+                  <div className={`text-xs font-bold uppercase tracking-widest mb-3 px-1 ${tier.color}`}>
+                    {tier.label}
+                  </div>
+                  <div className="grid grid-cols-2 gap-2.5">
+                    {bots.filter(b => b.difficulty === tier.value).map((bot, i) => (
+                      <motion.button
+                        key={bot.id}
+                        initial={{ opacity: 0, y: 12 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: i * 0.04 }}
+                        whileHover={{ scale: 1.03, y: -2 }}
+                        whileTap={{ scale: 0.97 }}
+                        onClick={() => onSelect(pendingMode, bot.difficulty, undefined, bot.name)}
+                        className="flex flex-col items-center text-center p-3 rounded-2xl bg-white/5 hover:bg-white/10 border border-white/10 hover:border-white/25 transition-all group"
+                      >
+                        {/* Avatar */}
+                        <div className={`w-14 h-14 rounded-2xl bg-gradient-to-br ${bot.color} flex items-center justify-center text-3xl mb-2 shadow-lg group-hover:scale-105 transition-transform`}>
+                          {bot.emoji}
+                        </div>
+
+                        {/* Name */}
+                        <span className="text-white text-xs font-bold leading-tight mb-1">{bot.name}</span>
+
+                        {/* Tagline */}
+                        <span className="text-gray-500 text-[10px] leading-snug italic mb-2 line-clamp-2">{bot.tagline}</span>
+
+                        {/* ELO badge */}
+                        <span className={`text-[10px] font-mono font-semibold px-2 py-0.5 rounded-full ${
+                          tier.value === 'easy'   ? 'bg-green-500/15 text-green-400' :
+                          tier.value === 'medium' ? 'bg-yellow-500/15 text-yellow-400' :
+                                                    'bg-red-500/15 text-red-400'
+                        }`}>
+                          {bot.elo} ELO
+                        </span>
+                      </motion.button>
+                    ))}
+                  </div>
                 </div>
-                <div className="grid grid-cols-3 gap-2">
-                  {bots.filter(b => b.difficulty === tier).map((bot, i) => (
-                    <motion.button
-                      key={bot.id}
-                      initial={{ opacity: 0, y: 10 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: i * 0.04 }}
-                      whileHover={{ scale: 1.04, y: -2 }}
-                      whileTap={{ scale: 0.96 }}
-                      onClick={() => onSelect(pendingMode, bot.difficulty, undefined, bot.name)}
-                      className="flex flex-col items-center gap-1.5 p-3 rounded-2xl bg-white/5 hover:bg-white/10 border border-white/10 hover:border-white/25 transition-all text-center group"
-                    >
-                      <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${bot.color} flex items-center justify-center text-2xl shadow-lg`}>
-                        {bot.emoji}
-                      </div>
-                      <span className="text-white text-xs font-bold leading-tight">{bot.name}</span>
-                      <span className="text-gray-500 text-[10px] leading-tight">{bot.tagline}</span>
-                    </motion.button>
-                  ))}
-                </div>
-              </div>
-            ))}
+              ))}
+            </div>
 
             <button
               onClick={() => setStep('mode')}
-              className="w-full py-3 text-gray-400 hover:text-white text-sm transition-colors mt-2"
+              className="w-full py-3 text-gray-400 hover:text-white text-sm transition-colors mt-4"
             >
               ← Back
             </button>
