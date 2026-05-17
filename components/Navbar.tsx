@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Sun, Moon, Zap, Crown, X, Check } from 'lucide-react';
-import { setPro, isPro } from '@/lib/storage';
+import { setPro } from '@/lib/storage';
 
 interface NavbarProps {
   theme: 'dark' | 'light';

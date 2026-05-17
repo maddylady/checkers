@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Navbar from '@/components/Navbar';
 import ModeSelector, { type GameMode } from '@/components/ModeSelector';
@@ -28,31 +28,18 @@ export default function HomePage() {
   const [gameMode, setGameMode] = useState<GameMode>('ai');
   const [difficulty, setDifficulty] = useState<Difficulty>('medium');
   const [roomCode, setRoomCode] = useState<string | undefined>();
-  const [username, setUsernameState] = useState('');
-  const [city, setCityState] = useState('');
-  const [showUsernameModal, setShowUsernameModal] = useState(false);
-  const [isFirstTime, setIsFirstTime] = useState(false);
-  const [theme, setThemeState] = useState<'dark' | 'light'>('dark');
-  const [leaderboard, setLeaderboard] = useState<PlayerStats[]>([]);
-  const [stats, setStats] = useState<PlayerStats | null>(null);
-  const [history, setHistory] = useState<GameRecord[]>([]);
-  const [statsTab, setStatsTab] = useState<'stats' | 'history'>('stats');
-
-  useEffect(() => {
+  const [username, setUsernameState] = useState(() => getUsername());
+  const [city, setCityState] = useState(() => getCity());
+  const [isFirstTime, setIsFirstTime] = useState(() => !getUsername());
+  const [showUsernameModal, setShowUsernameModal] = useState(() => !getUsername());
+  const [theme, setThemeState] = useState<'dark' | 'light'>(() => getTheme());
+  const [leaderboard, setLeaderboard] = useState<PlayerStats[]>(() => {
     seedLeaderboardIfEmpty();
-    const u = getUsername();
-    if (!u) {
-      setIsFirstTime(true);
-      setShowUsernameModal(true);
-    } else {
-      setUsernameState(u);
-    }
-    setCityState(getCity());
-    setThemeState(getTheme());
-    setLeaderboard(getLeaderboard());
-    setStats(getStats());
-    setHistory(getGameHistory());
-  }, []);
+    return getLeaderboard();
+  });
+  const [stats, setStats] = useState<PlayerStats | null>(() => getStats() ?? null);
+  const [history, setHistory] = useState<GameRecord[]>(() => getGameHistory());
+  const [statsTab, setStatsTab] = useState<'stats' | 'history'>('stats');
 
   const handleThemeToggle = () => {
     const newTheme = theme === 'dark' ? 'light' : 'dark';

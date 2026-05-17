@@ -1,7 +1,7 @@
 'use client';
 
-import { motion, AnimatePresence } from 'framer-motion';
-import type { Board as BoardType, Move, GameState, Piece } from '@/lib/game-logic';
+import { motion } from 'framer-motion';
+import type { GameState } from '@/lib/game-logic';
 import { getMovesForCell } from '@/lib/game-logic';
 import PieceComponent from './Piece';
 

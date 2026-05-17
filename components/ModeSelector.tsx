@@ -19,7 +19,7 @@ const difficulties: { value: Difficulty; label: string; desc: string; color: str
 
 export default function ModeSelector({ onSelect }: ModeSelectorProps) {
   const [step, setStep] = useState<'mode' | 'difficulty' | 'online'>('mode');
-  const [roomCode, setRoomCode] = useState('');
+
   const [joinCode, setJoinCode] = useState('');
 
   const generateRoomCode = () => {
@@ -28,9 +28,7 @@ export default function ModeSelector({ onSelect }: ModeSelectorProps) {
   };
 
   const handleCreateRoom = () => {
-    const code = generateRoomCode();
-    setRoomCode(code);
-    onSelect('online', undefined, code);
+    onSelect('online', undefined, generateRoomCode());
   };
 
   const handleJoinRoom = () => {

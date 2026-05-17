@@ -23,6 +23,7 @@ export interface GameState {
   captured: { red: number; black: number };
   status: 'playing' | 'red_wins' | 'black_wins' | 'draw';
   moveHistory: Move[];
+  movesWithoutCapture: number;
 }
 
 export interface GameRecord {
@@ -84,6 +85,7 @@ export function createInitialGameState(): GameState {
     captured: { red: 0, black: 0 },
     status: 'playing',
     moveHistory: [],
+    movesWithoutCapture: 0,
   };
 }
 
@@ -114,50 +116,46 @@ function inBounds(row: number, col: number): boolean {
   return row >= 0 && row < 8 && col >= 0 && col < 8;
 }
 
-function opponent(player: Player): Player {
-  return player === 'red' ? 'black' : 'red';
+function isPosition(value: unknown): value is [number, number] {
+  return (
+    Array.isArray(value) &&
+    value.length === 2 &&
+    Number.isInteger(value[0]) &&
+    Number.isInteger(value[1]) &&
+    inBounds(value[0], value[1])
+  );
 }
 
-// Get capture moves for a single piece (non-chained)
-function getCaptureMoves(
-  board: Board,
-  row: number,
-  col: number,
-  visited: Set<string> = new Set()
-): Move[] {
-  const piece = board[row][col];
-  if (!piece) return [];
+export function isMoveShape(value: unknown): value is Move {
+  if (!value || typeof value !== 'object') return false;
+  const move = value as Partial<Move>;
+  return (
+    isPosition(move.from) &&
+    isPosition(move.to) &&
+    Array.isArray(move.captures) &&
+    move.captures.every(isPosition)
+  );
+}
 
-  const moves: Move[] = [];
-  const dirs: [number, number][] =
-    piece.type === 'king'
-      ? [[-1, -1], [-1, 1], [1, -1], [1, 1]]
-      : piece.player === 'red'
-      ? [[1, -1], [1, 1]]
-      : [[-1, -1], [-1, 1]];
+function samePosition(a: [number, number], b: [number, number]): boolean {
+  return a[0] === b[0] && a[1] === b[1];
+}
 
-  for (const [dr, dc] of dirs) {
-    const midRow = row + dr;
-    const midCol = col + dc;
-    const toRow = row + 2 * dr;
-    const toCol = col + 2 * dc;
-    const visitKey = `${toRow},${toCol}`;
+function sameMove(a: Move, b: Move): boolean {
+  return (
+    samePosition(a.from, b.from) &&
+    samePosition(a.to, b.to) &&
+    a.captures.length === b.captures.length &&
+    a.captures.every((capture, index) => samePosition(capture, b.captures[index]))
+  );
+}
 
-    if (
-      inBounds(toRow, toCol) &&
-      board[midRow][midCol]?.player === opponent(piece.player) &&
-      board[toRow][toCol] === null &&
-      !visited.has(visitKey)
-    ) {
-      moves.push({
-        from: [row, col],
-        to: [toRow, toCol],
-        captures: [[midRow, midCol]],
-      });
-    }
-  }
+export function isLegalMove(state: GameState, move: unknown): move is Move {
+  return isMoveShape(move) && state.validMoves.some(validMove => sameMove(validMove, move));
+}
 
-  return moves;
+function opponent(player: Player): Player {
+  return player === 'red' ? 'black' : 'red';
 }
 
 // Get all chained capture sequences starting from a position
@@ -186,7 +184,6 @@ function getChainCaptures(
     const toRow = row + 2 * dr;
     const toCol = col + 2 * dc;
     const visitKey = `${toRow},${toCol}`;
-    const capKey = `${midRow},${midCol}`;
 
     if (
       inBounds(toRow, toCol) &&
@@ -357,6 +354,10 @@ export function checkWinCondition(
 }
 
 export function applyMoveToState(state: GameState, move: Move): GameState {
+  if (!isLegalMove(state, move)) {
+    return state;
+  }
+
   const newBoard = applyMove(state.board, move);
   const capturedCount = move.captures.length;
   const newCaptured = { ...state.captured };
@@ -367,9 +368,16 @@ export function applyMoveToState(state: GameState, move: Move): GameState {
     newCaptured.red += capturedCount;
   }
 
+  const newMovesWithoutCapture = capturedCount > 0 ? 0 : state.movesWithoutCapture + 1;
   const newHistory = [...state.moveHistory, move];
   const nextPlayer = opponent(state.currentPlayer);
-  const newStatus = checkWinCondition(newBoard, state.currentPlayer);
+  let newStatus = checkWinCondition(newBoard, state.currentPlayer);
+
+  // 40-move no-capture draw rule (English draughts standard)
+  if (newStatus === 'playing' && newMovesWithoutCapture >= 40) {
+    newStatus = 'draw';
+  }
+
   const newValidMoves = newStatus === 'playing' ? getAllValidMoves(newBoard, nextPlayer) : [];
 
   return {
@@ -380,6 +388,7 @@ export function applyMoveToState(state: GameState, move: Move): GameState {
     captured: newCaptured,
     status: newStatus,
     moveHistory: newHistory,
+    movesWithoutCapture: newMovesWithoutCapture,
   };
 }
 
@@ -399,7 +408,7 @@ export interface AnalysisNote {
   severity: 'info' | 'warning' | 'error';
 }
 
-export function analyzeGame(moveHistory: Move[], finalBoard: Board): AnalysisNote[] {
+export function analyzeGame(moveHistory: Move[]): AnalysisNote[] {
   const notes: AnalysisNote[] = [];
   let board = createInitialBoard();
   let currentPlayer: Player = 'red';

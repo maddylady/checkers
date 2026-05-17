@@ -174,6 +174,32 @@ For online multiplayer, both players need to be able to reach the same server. I
 
 ---
 
+## Deployment Plan
+
+### Recommended Order
+
+1. **Deploy the stable Next.js build to Vercel** for the public demo link.
+2. **Add Supabase Auth** with Google sign-in so players have persistent identities.
+3. **Move stats, game history, leaderboards, and rooms to Supabase** so progress works across devices.
+4. **Replace the custom Socket.io server for Vercel deployments** with Supabase Realtime, Ably, Pusher, Convex, or another hosted realtime provider.
+
+### Important Vercel Note
+
+The current `server.js` is a custom Node.js + Socket.io server. That works locally and on serverful hosts such as Railway, Render, Fly.io, or a VPS. Vercel can deploy the Next.js app, but Vercel Serverless Functions are not the right place to host a long-running Socket.io server. For a production Vercel deployment, keep the app on Vercel and move realtime multiplayer to Supabase Realtime or another realtime provider.
+
+### Supabase Environment Variables
+
+When Supabase is added, create `.env.local` with:
+
+```bash
+NEXT_PUBLIC_SUPABASE_URL=your-project-url
+NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=your-publishable-key
+```
+
+For Google sign-in, configure Google as an OAuth provider in the Supabase dashboard and add the production callback URL to the Supabase redirect allow list.
+
+---
+
 ## Environment Variables
 
 | Variable | Default | Description |

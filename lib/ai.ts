@@ -5,7 +5,6 @@ import {
   getAllValidMoves,
   applyMove,
   checkWinCondition,
-  cloneBoard,
 } from './game-logic';
 
 export type Difficulty = 'easy' | 'medium' | 'hard';

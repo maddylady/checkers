@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useLayoutEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Board from './Board';
 import GameControls from './GameControls';
@@ -11,6 +11,7 @@ import {
   getMovesForCell,
   getAllValidMoves,
   analyzeGame,
+  isLegalMove,
   type GameState,
   type Player,
   type Move,
@@ -21,8 +22,7 @@ import { recordGameResult } from '@/lib/storage';
 import type { GameMode } from './ModeSelector';
 import { ArrowLeft, Copy, Check as CheckIcon } from 'lucide-react';
 
-// Socket.io client (lazy import to avoid SSR issues)
-let socket: ReturnType<typeof import('socket.io-client').io> | null = null;
+type SocketType = ReturnType<typeof import('socket.io-client').io>;
 
 interface GamePageProps {
   mode: GameMode;
@@ -43,7 +43,6 @@ export default function GamePage({
 }: GamePageProps) {
   const [gameState, setGameState] = useState<GameState>(createInitialGameState());
   const [playerColor, setPlayerColor] = useState<Player>(initialPlayerColor || 'red');
-  const [thinking, setThinking] = useState(false);
   const [showWin, setShowWin] = useState(false);
   const [analysisNotes, setAnalysisNotes] = useState<AnalysisNote[]>([]);
   const [turnTimer, setTurnTimer] = useState<number>(30);
@@ -51,22 +50,98 @@ export default function GamePage({
   const [onlineStatus, setOnlineStatus] = useState<'connecting' | 'waiting' | 'playing' | 'error'>('connecting');
   const [opponentName, setOpponentName] = useState<string>('');
 
-  const gameStartTime = useRef<number>(Date.now());
+  // thinking is derived — true whenever it's the AI's turn
+  const thinking = mode === 'ai' && gameState.status === 'playing' && gameState.currentPlayer !== playerColor;
+
+  const gameStartTime = useRef<number>(0);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const timerCountRef = useRef<number>(30);
   const gameStateRef = useRef<GameState>(gameState);
   const playerColorRef = useRef<Player>(playerColor);
   const opponentNameRef = useRef<string>(opponentName);
-  gameStateRef.current = gameState;
-  playerColorRef.current = playerColor;
-  opponentNameRef.current = opponentName;
+  const socketRef = useRef<SocketType | null>(null);
+
+  // Keep refs current — useLayoutEffect runs sync after paint, safe for effects/handlers
+  useLayoutEffect(() => {
+    gameStateRef.current = gameState;
+    playerColorRef.current = playerColor;
+    opponentNameRef.current = opponentName;
+  });
+
+  // Record start time once on mount
+  useLayoutEffect(() => {
+    gameStartTime.current = Date.now();
+  }, []);
+
+  // ---- Handlers (declared before effects so effects can reference them) ----
+  const handleMove = (move: Move) => {
+    if (!isLegalMove(gameStateRef.current, move)) return;
+
+    if (mode === 'online' && socketRef.current) {
+      socketRef.current.emit('make-move', { roomCode, move });
+    }
+    setGameState(prev => applyMoveToState(prev, move));
+  };
+
+  const handleCellClick = (row: number, col: number) => {
+    const state = gameStateRef.current;
+    if (state.status !== 'playing') return;
+    if (mode === 'online' && state.currentPlayer !== playerColor) return;
+    if (mode === 'ai' && state.currentPlayer !== playerColor) return;
+
+    const clickedPiece = state.board[row][col];
+
+    if (state.selectedCell) {
+      const [selRow, selCol] = state.selectedCell;
+      const movesFromSelected = getMovesForCell(state.validMoves, selRow, selCol);
+      const matchingMove = movesFromSelected.find(m => m.to[0] === row && m.to[1] === col);
+
+      if (matchingMove) {
+        handleMove(matchingMove);
+        return;
+      }
+
+      if (clickedPiece?.player === state.currentPlayer) {
+        const pieceMoves = getMovesForCell(state.validMoves, row, col);
+        if (pieceMoves.length > 0) {
+          setGameState(prev => ({ ...prev, selectedCell: [row, col] }));
+          return;
+        }
+      }
+
+      setGameState(prev => ({ ...prev, selectedCell: null }));
+      return;
+    }
+
+    if (clickedPiece?.player === state.currentPlayer) {
+      const pieceMoves = getMovesForCell(state.validMoves, row, col);
+      if (pieceMoves.length > 0) {
+        setGameState(prev => ({ ...prev, selectedCell: [row, col] }));
+      }
+    }
+  };
+
+  const handleRestart = () => {
+    if (timerRef.current) clearInterval(timerRef.current);
+    setGameState(createInitialGameState());
+    setShowWin(false);
+    gameStartTime.current = Date.now();
+  };
+
+  const handleResign = () => {
+    setGameState(prev => ({
+      ...prev,
+      status: prev.currentPlayer === 'red' ? 'black_wins' : 'red_wins',
+    }));
+  };
 
   // ---- Timer ----
   useEffect(() => {
     if (gameState.status !== 'playing') return;
 
     timerCountRef.current = 30;
-    setTurnTimer(30);
+    // Defer initial display update — avoids synchronous setState inside effect
+    const resetTimer = setTimeout(() => setTurnTimer(30), 0);
     timerRef.current = setInterval(() => {
       timerCountRef.current -= 1;
       setTurnTimer(timerCountRef.current);
@@ -82,6 +157,7 @@ export default function GamePage({
     }, 1000);
 
     return () => {
+      clearTimeout(resetTimer);
       if (timerRef.current) clearInterval(timerRef.current);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -91,14 +167,12 @@ export default function GamePage({
   useEffect(() => {
     if (mode !== 'ai') return;
     if (gameState.status !== 'playing') return;
-    if (gameState.currentPlayer === playerColor) return; // human's turn
+    if (gameState.currentPlayer === playerColor) return;
 
     const aiPlayer: Player = playerColor === 'red' ? 'black' : 'red';
-    setThinking(true);
 
     const timer = setTimeout(() => {
       const best = getBestMove(gameState.board, aiPlayer, difficulty);
-      setThinking(false);
       if (best) {
         setGameState(prev => applyMoveToState(prev, best));
       }
@@ -113,9 +187,6 @@ export default function GamePage({
     if (gameState.status !== 'playing') {
       if (timerRef.current) clearInterval(timerRef.current);
 
-      const notes = analyzeGame(gameState.moveHistory, gameState.board);
-      setAnalysisNotes(notes);
-
       const duration = Math.floor((Date.now() - gameStartTime.current) / 1000);
       const color = playerColorRef.current;
       let result: 'win' | 'loss' | 'draw' = 'draw';
@@ -127,7 +198,11 @@ export default function GamePage({
       const opp = mode === 'ai' ? `AI (${difficulty})` : opponentNameRef.current || 'Player 2';
       recordGameResult(result, mode, opp, gameState.moveHistory.length, duration);
 
-      const t = setTimeout(() => setShowWin(true), 500);
+      const notes = analyzeGame(gameState.moveHistory);
+      const t = setTimeout(() => {
+        setAnalysisNotes(notes);
+        setShowWin(true);
+      }, 500);
       return () => clearTimeout(t);
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -140,13 +215,14 @@ export default function GamePage({
     async function setupSocket() {
       try {
         const { io } = await import('socket.io-client');
-        socket = io(window.location.origin, { path: '/api/socket' });
+        const s = io(window.location.origin, { path: '/api/socket' });
+        socketRef.current = s;
 
-        socket.on('connect', () => {
-          socket?.emit('join-room', { roomCode, username });
+        s.on('connect', () => {
+          s.emit('join-room', { roomCode, username });
         });
 
-        socket.on('room-joined', (data: { color: Player; opponentName?: string }) => {
+        s.on('room-joined', (data: { color: Player; opponentName?: string }) => {
           setPlayerColor(data.color);
           if (data.opponentName) {
             setOpponentName(data.opponentName);
@@ -156,20 +232,28 @@ export default function GamePage({
           }
         });
 
-        socket.on('opponent-joined', (data: { username: string }) => {
+        s.on('opponent-joined', (data: { username: string }) => {
           setOpponentName(data.username);
           setOnlineStatus('playing');
         });
 
-        socket.on('move-made', (move: Move) => {
+        s.on('move-made', (move: Move) => {
           setGameState(prev => applyMoveToState(prev, move));
         });
 
-        socket.on('opponent-disconnected', () => {
+        s.on('opponent-disconnected', () => {
           setOnlineStatus('error');
         });
 
-        socket.on('connect_error', () => {
+        s.on('room-full', () => {
+          setOnlineStatus('error');
+        });
+
+        s.on('room-error', () => {
+          setOnlineStatus('error');
+        });
+
+        s.on('connect_error', () => {
           setOnlineStatus('error');
         });
       } catch {
@@ -179,90 +263,11 @@ export default function GamePage({
 
     setupSocket();
     return () => {
-      socket?.disconnect();
-      socket = null;
+      socketRef.current?.disconnect();
+      socketRef.current = null;
     };
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [mode, roomCode]);
-
-  // ---- Move handler ----
-  const handleMove = useCallback((move: Move) => {
-    if (mode === 'online' && socket) {
-      socket.emit('make-move', { roomCode, move });
-    }
-    setGameState(prev => applyMoveToState(prev, move));
-  }, [mode, roomCode]);
-
-  // ---- Cell click ----
-  const handleCellClick = useCallback((row: number, col: number) => {
-    const state = gameStateRef.current;
-    if (state.status !== 'playing') return;
-
-    // Online: only move on your turn
-    if (mode === 'online' && state.currentPlayer !== playerColor) return;
-    // AI: only move on player's turn
-    if (mode === 'ai' && state.currentPlayer !== playerColor) return;
-
-    const clickedPiece = state.board[row][col];
-
-    // If a cell is already selected
-    if (state.selectedCell) {
-      const [selRow, selCol] = state.selectedCell;
-
-      // Check if clicked cell is a valid move target
-      const movesFromSelected = getMovesForCell(state.validMoves, selRow, selCol);
-      const matchingMove = movesFromSelected.find(
-        m => m.to[0] === row && m.to[1] === col
-      );
-
-      if (matchingMove) {
-        handleMove(matchingMove);
-        return;
-      }
-
-      // Clicked on own piece — re-select
-      if (clickedPiece?.player === state.currentPlayer) {
-        const pieceMoves = getMovesForCell(state.validMoves, row, col);
-        if (pieceMoves.length > 0) {
-          setGameState(prev => ({
-            ...prev,
-            selectedCell: [row, col],
-          }));
-          return;
-        }
-      }
-
-      // Deselect
-      setGameState(prev => ({ ...prev, selectedCell: null }));
-      return;
-    }
-
-    // No selection: select a piece
-    if (clickedPiece?.player === state.currentPlayer) {
-      const pieceMoves = getMovesForCell(state.validMoves, row, col);
-      if (pieceMoves.length > 0) {
-        setGameState(prev => ({
-          ...prev,
-          selectedCell: [row, col],
-        }));
-      }
-    }
-  }, [mode, playerColor, handleMove]);
-
-  const handleRestart = useCallback(() => {
-    if (timerRef.current) clearInterval(timerRef.current);
-    setGameState(createInitialGameState());
-    setShowWin(false);
-    setThinking(false);
-    gameStartTime.current = Date.now();
-  }, []);
-
-  const handleResign = useCallback(() => {
-    setGameState(prev => ({
-      ...prev,
-      status: prev.currentPlayer === 'red' ? 'black_wins' : 'red_wins',
-    }));
-  }, []);
 
   const copyRoomCode = () => {
     if (roomCode) {
