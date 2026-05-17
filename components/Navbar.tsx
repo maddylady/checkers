@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Sun, Moon, Zap, Crown, X, Check, LogOut, ShoppingBag } from 'lucide-react';
+import { Sun, Moon, Zap, Crown, X, Check, LogOut, ShoppingBag, User } from 'lucide-react';
 import { setPro } from '@/lib/storage';
 import { signInWithGoogle, signOut, type AuthUser } from '@/lib/supabase';
 
@@ -15,6 +15,7 @@ interface NavbarProps {
   coins?: number;
   onShopOpen: () => void;
   onLogoClick?: () => void;
+  onProfileOpen?: () => void;
 }
 
 function GoogleIcon() {
@@ -123,7 +124,7 @@ function ProModal({ onClose }: { onClose: () => void }) {
   );
 }
 
-export default function Navbar({ theme, onThemeToggle, username, onUsernameChange, googleUser, coins, onShopOpen, onLogoClick }: NavbarProps) {
+export default function Navbar({ theme, onThemeToggle, username, onUsernameChange, googleUser, coins, onShopOpen, onLogoClick, onProfileOpen }: NavbarProps) {
   const [showPro, setShowPro] = useState(false);
   const [showUserMenu, setShowUserMenu] = useState(false);
   const [signingIn, setSigningIn] = useState(false);
@@ -162,16 +163,25 @@ export default function Navbar({ theme, onThemeToggle, username, onUsernameChang
 
         {/* Right */}
         <div className="flex items-center gap-2">
-          {/* Username (only show if not signed in with Google) */}
-          {!googleUser?.isGoogle && (
+          {/* Username + profile (only show if not signed in with Google) */}
+          {!googleUser?.isGoogle && username && (
+            <button
+              onClick={onProfileOpen}
+              className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-xl bg-white/10 hover:bg-white/20 transition-colors text-sm text-gray-300"
+            >
+              <div className="w-5 h-5 rounded-full bg-gradient-to-br from-amber-400 to-red-500 flex items-center justify-center text-xs text-white font-bold">
+                {username[0].toUpperCase()}
+              </div>
+              <span>{username}</span>
+            </button>
+          )}
+          {!googleUser?.isGoogle && !username && (
             <button
               onClick={onUsernameChange}
               className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-xl bg-white/10 hover:bg-white/20 transition-colors text-sm text-gray-300"
             >
-              <div className="w-5 h-5 rounded-full bg-gradient-to-br from-amber-400 to-red-500 flex items-center justify-center text-xs text-white font-bold">
-                {username ? username[0].toUpperCase() : '?'}
-              </div>
-              <span>{username || 'Set name'}</span>
+              <div className="w-5 h-5 rounded-full bg-gradient-to-br from-amber-400 to-red-500 flex items-center justify-center text-xs text-white font-bold">?</div>
+              <span>Set name</span>
             </button>
           )}
 
@@ -205,6 +215,13 @@ export default function Navbar({ theme, onThemeToggle, username, onUsernameChang
                       Signed in with Google
                     </div>
                     <button
+                      onClick={() => { setShowUserMenu(false); onProfileOpen?.(); }}
+                      className="w-full flex items-center gap-2 px-3 py-2 rounded-xl text-sm text-gray-300 hover:bg-white/10 hover:text-white transition-colors"
+                    >
+                      <User size={14} />
+                      My Profile
+                    </button>
+                    <button
                       onClick={handleSignOut}
                       className="w-full flex items-center gap-2 px-3 py-2 rounded-xl text-sm text-gray-300 hover:bg-white/10 hover:text-white transition-colors"
                     >
@@ -233,7 +250,7 @@ export default function Navbar({ theme, onThemeToggle, username, onUsernameChang
             <div className="group relative flex items-center gap-1 px-2 py-1.5 rounded-full bg-amber-500/10 border border-amber-500/20 cursor-default">
               <span className="text-amber-400 text-sm">🪙</span>
               <span className="text-amber-400 text-xs font-bold">{coins}</span>
-              <div className="absolute bottom-full right-0 mb-2 px-3 py-2 bg-gray-900 border border-white/10 rounded-xl text-xs text-gray-300 whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-50 shadow-xl">
+              <div className="absolute top-full right-0 mt-2 px-3 py-2 bg-gray-900 border border-white/10 rounded-xl text-xs text-gray-300 whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-50 shadow-xl">
                 <div className="font-semibold text-white mb-1">🪙 Coins</div>
                 <div>Win games &amp; complete daily challenges to earn coins.</div>
                 <div className="text-gray-400 mt-0.5">Spend them in the Shop on piece skins!</div>

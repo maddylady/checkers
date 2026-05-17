@@ -49,6 +49,7 @@ export default function HomePage() {
   const [coins, setCoins] = useState(0);
   const [showShop, setShowShop] = useState(false);
   const [showProfile, setShowProfile] = useState(false);
+  const [selectorKey, setSelectorKey] = useState(0);
   const [newBadge, setNewBadge] = useState<Badge | null>(null);
   const [streak, setStreak] = useState(0);
 
@@ -69,9 +70,16 @@ export default function HomePage() {
       setCoins(getCoins());
       setStreak(getStreak().count);
 
-      // Then try to load real leaderboard from Supabase
+      // Merge Supabase leaderboard with local ELOs (Supabase has no ELO column)
       fetchLeaderboard().then(data => {
-        if (data.length > 0) setLeaderboard(data);
+        if (data.length > 0) {
+          const local = getLeaderboard();
+          const merged = data.map(row => ({
+            ...row,
+            elo: local.find(p => p.username === row.username)?.elo ?? 1200,
+          }));
+          setLeaderboard(merged);
+        }
       }).catch(() => {});
     }, 0);
 
@@ -114,7 +122,16 @@ export default function HomePage() {
     setCoins(getCoins());
     // Refresh leaderboard from Supabase after game
     fetchLeaderboard().then(data => {
-      setLeaderboard(data.length > 0 ? data : getLeaderboard());
+      if (data.length > 0) {
+        const local = getLeaderboard();
+        const merged = data.map(row => ({
+          ...row,
+          elo: local.find(p => p.username === row.username)?.elo ?? 1200,
+        }));
+        setLeaderboard(merged);
+      } else {
+        setLeaderboard(getLeaderboard());
+      }
     }).catch(() => setLeaderboard(getLeaderboard()));
   };
 
@@ -138,7 +155,8 @@ export default function HomePage() {
         googleUser={googleUser}
         coins={coins}
         onShopOpen={() => setShowShop(true)}
-        onLogoClick={() => setScreen('home')}
+        onLogoClick={() => { setScreen('home'); setSelectorKey(k => k + 1); }}
+        onProfileOpen={() => setShowProfile(true)}
       />
 
       <AnimatePresence mode="wait">
@@ -163,7 +181,7 @@ export default function HomePage() {
                   className="lg:col-span-3"
                 >
                   <div className="rounded-3xl p-6 border bg-gray-900/80 border-white/10 backdrop-blur-sm shadow-lg">
-                    <ModeSelector onSelect={handleModeSelect} />
+                    <ModeSelector key={selectorKey} onSelect={handleModeSelect} />
                   </div>
                 </motion.div>
 
