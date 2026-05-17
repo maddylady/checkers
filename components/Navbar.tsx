@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Sun, Moon, Zap, Crown, X, Check, LogOut, ShoppingBag, User } from 'lucide-react';
+import { Sun, Moon, Zap, Crown, X, Check, LogOut, ShoppingBag, User, BookOpen } from 'lucide-react';
 import { setPro } from '@/lib/storage';
 import { signInWithGoogle, signOut, type AuthUser } from '@/lib/supabase';
 
@@ -16,6 +16,7 @@ interface NavbarProps {
   onShopOpen: () => void;
   onLogoClick?: () => void;
   onProfileOpen?: () => void;
+  onRulesOpen?: () => void;
 }
 
 function GoogleIcon() {
@@ -124,7 +125,7 @@ function ProModal({ onClose }: { onClose: () => void }) {
   );
 }
 
-export default function Navbar({ theme, onThemeToggle, username, onUsernameChange, googleUser, coins, onShopOpen, onLogoClick, onProfileOpen }: NavbarProps) {
+export default function Navbar({ theme, onThemeToggle, username, onUsernameChange, googleUser, coins, onShopOpen, onLogoClick, onProfileOpen, onRulesOpen }: NavbarProps) {
   const [showPro, setShowPro] = useState(false);
   const [showUserMenu, setShowUserMenu] = useState(false);
   const [signingIn, setSigningIn] = useState(false);
@@ -141,7 +142,7 @@ export default function Navbar({ theme, onThemeToggle, username, onUsernameChang
 
   return (
     <>
-      <nav className="fixed top-0 left-0 right-0 z-30 flex items-center justify-between px-6 py-3 backdrop-blur-md bg-black/30 border-b border-white/10">
+      <nav className="fixed top-0 left-0 right-0 z-40 flex items-center justify-between px-6 py-3 backdrop-blur-md bg-black/30 border-b border-white/10">
         {/* Logo */}
         <button
           onClick={onLogoClick}
@@ -258,6 +259,15 @@ export default function Navbar({ theme, onThemeToggle, username, onUsernameChang
             </div>
           )}
 
+          {/* Rules button */}
+          <button
+            onClick={onRulesOpen}
+            className="p-2 rounded-xl bg-white/10 hover:bg-white/20 transition-colors text-gray-300"
+            title="Rules"
+          >
+            <BookOpen size={16} />
+          </button>
+
           {/* Theme toggle */}
           <button
             onClick={onThemeToggle}
@@ -296,7 +306,7 @@ export default function Navbar({ theme, onThemeToggle, username, onUsernameChang
 
       {/* Click outside to close user menu */}
       {showUserMenu && (
-        <div className="fixed inset-0 z-40" onClick={() => setShowUserMenu(false)} />
+        <div className="fixed inset-0 z-[35]" onClick={() => setShowUserMenu(false)} />
       )}
     </>
   );

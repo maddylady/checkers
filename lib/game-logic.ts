@@ -1,5 +1,6 @@
 export type Player = 'red' | 'black';
 export type PieceType = 'regular' | 'king';
+export type RulesVariant = 'american' | 'russian';
 
 export interface Piece {
   id: string;
@@ -24,6 +25,7 @@ export interface GameState {
   status: 'playing' | 'red_wins' | 'black_wins' | 'draw';
   moveHistory: Move[];
   movesWithoutCapture: number;
+  rulesVariant: RulesVariant;
 }
 
 export interface GameRecord {
@@ -76,9 +78,9 @@ export function createInitialBoard(): Board {
   return board;
 }
 
-export function createInitialGameState(): GameState {
+export function createInitialGameState(variant: RulesVariant = 'american'): GameState {
   const board = createInitialBoard();
-  const validMoves = getAllValidMoves(board, 'red');
+  const validMoves = getAllValidMoves(board, 'red', variant);
   return {
     board,
     currentPlayer: 'red',
@@ -88,6 +90,7 @@ export function createInitialGameState(): GameState {
     status: 'playing',
     moveHistory: [],
     movesWithoutCapture: 0,
+    rulesVariant: variant,
   };
 }
 
@@ -111,6 +114,7 @@ export function cloneGameState(state: GameState): GameState {
       to: [...m.to] as [number, number],
       captures: m.captures.map(c => [...c] as [number, number]),
     })),
+    rulesVariant: state.rulesVariant ?? 'american',
   };
 }
 
@@ -166,7 +170,8 @@ function getChainCaptures(
   row: number,
   col: number,
   currentCaptures: [number, number][],
-  visitedLandings: Set<string>
+  visitedLandings: Set<string>,
+  variant: RulesVariant = 'american'
 ): Move[] {
   const piece = board[row][col];
   if (!piece) return [];
@@ -180,6 +185,79 @@ function getChainCaptures(
 
   const result: Move[] = [];
 
+  // Russian flying king capture logic
+  if (variant === 'russian' && piece.type === 'king') {
+    for (const [dr, dc] of dirs) {
+      // Slide along the diagonal to find an enemy piece
+      let scanRow = row + dr;
+      let scanCol = col + dc;
+      let captureTarget: [number, number] | null = null;
+
+      while (inBounds(scanRow, scanCol)) {
+        const scanned = board[scanRow][scanCol];
+        if (scanned !== null) {
+          // Hit a piece — if it's an enemy not already in capture list, it's a capture target
+          if (
+            scanned.player === opponent(piece.player) &&
+            !currentCaptures.some(([r, c]) => r === scanRow && c === scanCol)
+          ) {
+            captureTarget = [scanRow, scanCol];
+          }
+          break; // Can't slide past any piece
+        }
+        scanRow += dr;
+        scanCol += dc;
+      }
+
+      if (captureTarget === null) continue;
+
+      const [midRow, midCol] = captureTarget;
+      // All empty squares beyond the capture target are valid landing squares
+      let landRow = midRow + dr;
+      let landCol = midCol + dc;
+
+      while (inBounds(landRow, landCol) && board[landRow][landCol] === null) {
+        const visitKey = `${landRow},${landCol}`;
+        if (!visitedLandings.has(visitKey)) {
+          const newCaptures: [number, number][] = [...currentCaptures, [midRow, midCol]];
+          const newVisited = new Set(visitedLandings);
+          newVisited.add(visitKey);
+
+          // In this branch, piece.type is already 'king'; no promotion needed
+          const landingPiece = { ...piece };
+
+          const newBoard = cloneBoard(board);
+          newBoard[landRow][landCol] = landingPiece;
+          newBoard[row][col] = null;
+          newBoard[midRow][midCol] = null;
+
+          const deeperCaptures = getChainCaptures(newBoard, landRow, landCol, newCaptures, newVisited, variant);
+
+          if (deeperCaptures.length === 0) {
+            result.push({
+              from: [row, col] as [number, number],
+              to: [landRow, landCol] as [number, number],
+              captures: newCaptures,
+            });
+          } else {
+            for (const deeper of deeperCaptures) {
+              result.push({
+                from: [row, col] as [number, number],
+                to: deeper.to,
+                captures: deeper.captures,
+              });
+            }
+          }
+        }
+        landRow += dr;
+        landCol += dc;
+      }
+    }
+
+    return result;
+  }
+
+  // Standard (American / regular piece) capture logic
   for (const [dr, dc] of dirs) {
     const midRow = row + dr;
     const midCol = col + dc;
@@ -205,14 +283,16 @@ function getChainCaptures(
       newBoard[midRow][midCol] = null;
 
       // Check if king promotion would occur mid-chain (English draughts: promotion ends chain)
+      // In Russian rules, promotion mid-chain continues as a king — skip this check for russian
       const wouldPromote =
+        variant !== 'russian' &&
         piece.type === 'regular' &&
         ((piece.player === 'red' && toRow === 7) ||
           (piece.player === 'black' && toRow === 0));
 
       const deeperCaptures = wouldPromote
         ? []
-        : getChainCaptures(newBoard, toRow, toCol, newCaptures, newVisited);
+        : getChainCaptures(newBoard, toRow, toCol, newCaptures, newVisited, variant);
 
       if (deeperCaptures.length === 0) {
         // This is a terminal capture sequence
@@ -238,14 +318,14 @@ function getChainCaptures(
 }
 
 // Get all valid moves for a single piece
-export function getPieceMoves(board: Board, row: number, col: number): Move[] {
+export function getPieceMoves(board: Board, row: number, col: number, variant: RulesVariant = 'american'): Move[] {
   const piece = board[row][col];
   if (!piece) return [];
 
   // Check captures first
   const visited = new Set<string>();
   visited.add(`${row},${col}`);
-  const captures = getChainCaptures(board, row, col, [], visited);
+  const captures = getChainCaptures(board, row, col, [], visited, variant);
   if (captures.length > 0) return captures;
 
   // Regular moves
@@ -257,6 +337,21 @@ export function getPieceMoves(board: Board, row: number, col: number): Move[] {
       : [[-1, -1], [-1, 1]];
 
   const moves: Move[] = [];
+
+  // Russian flying king: kings can slide any number of squares diagonally
+  if (variant === 'russian' && piece.type === 'king') {
+    for (const [dr, dc] of dirs) {
+      let toRow = row + dr;
+      let toCol = col + dc;
+      while (inBounds(toRow, toCol) && board[toRow][toCol] === null) {
+        moves.push({ from: [row, col], to: [toRow, toCol], captures: [] });
+        toRow += dr;
+        toCol += dc;
+      }
+    }
+    return moves;
+  }
+
   for (const [dr, dc] of dirs) {
     const toRow = row + dr;
     const toCol = col + dc;
@@ -267,7 +362,7 @@ export function getPieceMoves(board: Board, row: number, col: number): Move[] {
   return moves;
 }
 
-export function getAllValidMoves(board: Board, player: Player): Move[] {
+export function getAllValidMoves(board: Board, player: Player, variant: RulesVariant = 'american'): Move[] {
   const allCaptures: Move[] = [];
   const allMoves: Move[] = [];
 
@@ -278,22 +373,36 @@ export function getAllValidMoves(board: Board, player: Player): Move[] {
 
       const visited = new Set<string>();
       visited.add(`${row},${col}`);
-      const captures = getChainCaptures(board, row, col, [], visited);
+      const captures = getChainCaptures(board, row, col, [], visited, variant);
       allCaptures.push(...captures);
 
       if (captures.length === 0) {
-        const dirs: [number, number][] =
-          piece.type === 'king'
-            ? [[-1, -1], [-1, 1], [1, -1], [1, 1]]
-            : player === 'red'
-            ? [[1, -1], [1, 1]]
-            : [[-1, -1], [-1, 1]];
+        // Russian flying king: kings slide any number of squares
+        if (variant === 'russian' && piece.type === 'king') {
+          const dirs: [number, number][] = [[-1, -1], [-1, 1], [1, -1], [1, 1]];
+          for (const [dr, dc] of dirs) {
+            let toRow = row + dr;
+            let toCol = col + dc;
+            while (inBounds(toRow, toCol) && board[toRow][toCol] === null) {
+              allMoves.push({ from: [row, col], to: [toRow, toCol], captures: [] });
+              toRow += dr;
+              toCol += dc;
+            }
+          }
+        } else {
+          const dirs: [number, number][] =
+            piece.type === 'king'
+              ? [[-1, -1], [-1, 1], [1, -1], [1, 1]]
+              : player === 'red'
+              ? [[1, -1], [1, 1]]
+              : [[-1, -1], [-1, 1]];
 
-        for (const [dr, dc] of dirs) {
-          const toRow = row + dr;
-          const toCol = col + dc;
-          if (inBounds(toRow, toCol) && board[toRow][toCol] === null) {
-            allMoves.push({ from: [row, col], to: [toRow, toCol], captures: [] });
+          for (const [dr, dc] of dirs) {
+            const toRow = row + dr;
+            const toCol = col + dc;
+            if (inBounds(toRow, toCol) && board[toRow][toCol] === null) {
+              allMoves.push({ from: [row, col], to: [toRow, toCol], captures: [] });
+            }
           }
         }
       }
@@ -331,10 +440,11 @@ export function applyMove(board: Board, move: Move): Board {
 
 export function checkWinCondition(
   board: Board,
-  currentPlayer: Player
+  currentPlayer: Player,
+  variant: RulesVariant = 'american'
 ): 'playing' | 'red_wins' | 'black_wins' | 'draw' {
   const nextPlayer = opponent(currentPlayer);
-  const nextMoves = getAllValidMoves(board, nextPlayer);
+  const nextMoves = getAllValidMoves(board, nextPlayer, variant);
 
   if (nextMoves.length === 0) {
     return currentPlayer === 'red' ? 'red_wins' : 'black_wins';
@@ -360,6 +470,7 @@ export function applyMoveToState(state: GameState, move: Move): GameState {
     return state;
   }
 
+  const variant: RulesVariant = state.rulesVariant ?? 'american';
   const newBoard = applyMove(state.board, move);
   const capturedCount = move.captures.length;
   const newCaptured = { ...state.captured };
@@ -373,14 +484,14 @@ export function applyMoveToState(state: GameState, move: Move): GameState {
   const newMovesWithoutCapture = capturedCount > 0 ? 0 : state.movesWithoutCapture + 1;
   const newHistory = [...state.moveHistory, move];
   const nextPlayer = opponent(state.currentPlayer);
-  let newStatus = checkWinCondition(newBoard, state.currentPlayer);
+  let newStatus = checkWinCondition(newBoard, state.currentPlayer, variant);
 
   // 40-move no-capture draw rule (English draughts standard)
   if (newStatus === 'playing' && newMovesWithoutCapture >= 40) {
     newStatus = 'draw';
   }
 
-  const newValidMoves = newStatus === 'playing' ? getAllValidMoves(newBoard, nextPlayer) : [];
+  const newValidMoves = newStatus === 'playing' ? getAllValidMoves(newBoard, nextPlayer, variant) : [];
 
   return {
     board: newBoard,
@@ -391,6 +502,7 @@ export function applyMoveToState(state: GameState, move: Move): GameState {
     status: newStatus,
     moveHistory: newHistory,
     movesWithoutCapture: newMovesWithoutCapture,
+    rulesVariant: variant,
   };
 }
 

@@ -1,4 +1,4 @@
-import type { GameRecord, PlayerStats } from './game-logic';
+import type { GameRecord, PlayerStats, RulesVariant } from './game-logic';
 import { syncPlayerStats, addGameRecord } from './supabase';
 import type { GameExtras } from './challenges';
 import { checkAndUpdateChallenges } from './challenges';
@@ -215,6 +215,16 @@ export function isPro(): boolean {
 export function setPro(val: boolean): void {
   if (typeof window === 'undefined') return;
   localStorage.setItem(STORAGE_KEYS.PRO, val ? 'true' : 'false');
+}
+
+export function getRulesVariant(): RulesVariant {
+  if (typeof window === 'undefined') return 'american';
+  return (localStorage.getItem('checkmate_rules_variant') as RulesVariant) || 'american';
+}
+
+export function setRulesVariant(v: RulesVariant): void {
+  if (typeof window === 'undefined') return;
+  localStorage.setItem('checkmate_rules_variant', v);
 }
 
 const SEEDED_USERNAMES = ['DragonKing99', 'CheckMaster', 'QueenSlayer', 'BoardWizard', 'NightRider', 'SteppeEagle', 'IronKnight', 'AlphaMove'];

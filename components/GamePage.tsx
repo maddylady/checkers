@@ -17,6 +17,7 @@ import {
   type Player,
   type Move,
   type AnalysisNote,
+  type RulesVariant,
 } from '@/lib/game-logic';
 import { getBestMove, type Difficulty } from '@/lib/ai';
 import { recordGameResult } from '@/lib/storage';
@@ -35,6 +36,7 @@ interface GamePageProps {
   botName?: string;
   botElo?: number;
   onExit: () => void;
+  rulesVariant?: RulesVariant;
 }
 
 export default function GamePage({
@@ -46,8 +48,9 @@ export default function GamePage({
   botName,
   botElo,
   onExit,
+  rulesVariant = 'american',
 }: GamePageProps) {
-  const [gameState, setGameState] = useState<GameState>(createInitialGameState());
+  const [gameState, setGameState] = useState<GameState>(createInitialGameState(rulesVariant));
   const [playerColor, setPlayerColor] = useState<Player>(initialPlayerColor || 'red');
   const [showWin, setShowWin] = useState(false);
   const [analysisNotes, setAnalysisNotes] = useState<AnalysisNote[]>([]);
@@ -100,8 +103,8 @@ export default function GamePage({
     if (movedPlayer === 'red') newCaptured.red++;
     else newCaptured.black++;
     const nextPlayer = newState.currentPlayer;
-    const newStatus = checkWinCondition(newBoard, movedPlayer);
-    const newValidMoves = newStatus === 'playing' ? getAllValidMoves(newBoard, nextPlayer) : [];
+    const newStatus = checkWinCondition(newBoard, movedPlayer, rulesVariant);
+    const newValidMoves = newStatus === 'playing' ? getAllValidMoves(newBoard, nextPlayer, rulesVariant) : [];
     return { ...newState, board: newBoard, captured: newCaptured, status: newStatus, validMoves: newValidMoves };
   };
 
@@ -131,7 +134,7 @@ export default function GamePage({
       newState = {
         ...newState,
         currentPlayer: currPlayer,
-        validMoves: getAllValidMoves(newState.board, currPlayer),
+        validMoves: getAllValidMoves(newState.board, currPlayer, rulesVariant),
       };
       setRouletteEffect(null);
     }
@@ -194,7 +197,7 @@ export default function GamePage({
   const handleRestart = () => {
     if (mode === 'online') return; // restart not synchronized in online mode
     if (timerRef.current) clearInterval(timerRef.current);
-    setGameState(createInitialGameState());
+    setGameState(createInitialGameState(rulesVariant));
     setShowWin(false);
     gameStartTime.current = Date.now();
     if (mode === 'mines') {
@@ -240,7 +243,7 @@ export default function GamePage({
       if (timerCountRef.current <= 0) {
         if (mode !== 'online') {
           // Auto-pick a random move for local/AI modes
-          const moves = getAllValidMoves(gameStateRef.current.board, gameStateRef.current.currentPlayer);
+          const moves = getAllValidMoves(gameStateRef.current.board, gameStateRef.current.currentPlayer, rulesVariant);
           if (moves.length > 0) {
             handleMove(moves[Math.floor(Math.random() * moves.length)]);
           }
@@ -436,7 +439,7 @@ export default function GamePage({
           return {
             ...prev,
             currentPlayer: nextPlayer,
-            validMoves: getAllValidMoves(prev.board, nextPlayer),
+            validMoves: getAllValidMoves(prev.board, nextPlayer, rulesVariant),
           };
         });
       }

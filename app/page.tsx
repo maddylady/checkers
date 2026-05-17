@@ -2,6 +2,7 @@
 import SkinShop from '@/components/SkinShop';
 import BadgeUnlockModal from '@/components/BadgeUnlockModal';
 import ProfileModal from '@/components/ProfileModal';
+import RulesModal from '@/components/RulesModal';
 import { BADGES, type Badge } from '@/lib/badges';
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -22,10 +23,12 @@ import {
   seedLeaderboardIfEmpty,
   getCoins,
   getStreak,
+  getRulesVariant,
+  setRulesVariant,
 } from '@/lib/storage';
 import { fetchLeaderboard, onAuthStateChange, type AuthUser } from '@/lib/supabase';
 import type { Difficulty } from '@/lib/ai';
-import type { PlayerStats, GameRecord } from '@/lib/game-logic';
+import type { PlayerStats, GameRecord, RulesVariant } from '@/lib/game-logic';
 
 type Screen = 'home' | 'game';
 
@@ -49,6 +52,8 @@ export default function HomePage() {
   const [coins, setCoins] = useState(0);
   const [showShop, setShowShop] = useState(false);
   const [showProfile, setShowProfile] = useState(false);
+  const [showRules, setShowRules] = useState(false);
+  const [rulesVariant, setRulesVariantState] = useState<RulesVariant>('american');
   const [selectorKey, setSelectorKey] = useState(0);
   const [newBadge, setNewBadge] = useState<Badge | null>(null);
   const [streak, setStreak] = useState(0);
@@ -69,6 +74,7 @@ export default function HomePage() {
       setLeaderboard(getLeaderboard());
       setCoins(getCoins());
       setStreak(getStreak().count);
+      setRulesVariantState(getRulesVariant());
 
       // Merge Supabase leaderboard with local ELOs (Supabase has no ELO column)
       fetchLeaderboard().then(data => {
@@ -157,6 +163,7 @@ export default function HomePage() {
         onShopOpen={() => setShowShop(true)}
         onLogoClick={() => { setScreen('home'); setSelectorKey(k => k + 1); }}
         onProfileOpen={() => setShowProfile(true)}
+        onRulesOpen={() => setShowRules(true)}
       />
 
       <AnimatePresence mode="wait">
@@ -330,6 +337,7 @@ export default function HomePage() {
               botName={botName}
               botElo={botElo}
               onExit={handleExitGame}
+              rulesVariant={rulesVariant}
             />
           </motion.div>
         )}
@@ -354,6 +362,13 @@ export default function HomePage() {
           />
       )}
       <BadgeUnlockModal badge={newBadge} onClose={() => setNewBadge(null)} />
+      {showRules && (
+        <RulesModal
+          onClose={() => setShowRules(false)}
+          currentVariant={rulesVariant}
+          onVariantChange={(v) => { setRulesVariantState(v); setRulesVariant(v); }}
+        />
+      )}
       {showProfile && (
         <ProfileModal
           stats={stats ?? { username, wins: 0, losses: 0, draws: 0, gamesPlayed: 0, elo: 1200 }}
