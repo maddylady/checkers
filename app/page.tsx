@@ -23,7 +23,6 @@ import {
 import { fetchLeaderboard, onAuthStateChange, type AuthUser } from '@/lib/supabase';
 import type { Difficulty } from '@/lib/ai';
 import type { PlayerStats, GameRecord } from '@/lib/game-logic';
-import { Swords, Shield, Brain, Globe } from 'lucide-react';
 
 type Screen = 'home' | 'game';
 
@@ -218,26 +217,6 @@ export default function HomePage() {
                   the board with post-game coaching.
                 </motion.p>
 
-                {/* Stats bar */}
-                <motion.div
-                  initial={{ y: 20, opacity: 0 }}
-                  animate={{ y: 0, opacity: 1 }}
-                  transition={{ delay: 0.4 }}
-                  className="flex justify-center gap-8 mt-10"
-                >
-                  {[
-                    { icon: <Swords size={16} />, label: 'Difficulty Levels', value: '3' },
-                    { icon: <Brain size={16} />, label: 'AI Engine', value: 'Minimax α-β' },
-                    { icon: <Globe size={16} />, label: 'Real-time', value: 'Socket.io' },
-                    { icon: <Shield size={16} />, label: 'Free Forever', value: '100%' },
-                  ].map((s, i) => (
-                    <div key={i} className={`flex flex-col items-center gap-1 ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>
-                      <div className="text-amber-400">{s.icon}</div>
-                      <div className={`text-lg font-bold ${theme === 'dark' ? 'text-white' : 'text-gray-800'}`}>{s.value}</div>
-                      <div className="text-xs">{s.label}</div>
-                    </div>
-                  ))}
-                </motion.div>
               </div>
 
               {/* Main content grid */}
@@ -372,48 +351,6 @@ export default function HomePage() {
                 </motion.div>
               </div>
 
-              {/* Feature highlights */}
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.6 }}
-                className="grid md:grid-cols-3 gap-4 mt-12"
-              >
-                {[
-                  {
-                    emoji: '🧠',
-                    title: 'AI Coach',
-                    desc: 'Post-game analysis highlights missed captures and strategic errors',
-                  },
-                  {
-                    emoji: '⚡',
-                    title: 'Real-time Multiplayer',
-                    desc: 'Challenge friends anywhere with instant room codes via Socket.io',
-                  },
-                  {
-                    emoji: '📊',
-                    title: 'Track Progress',
-                    desc: 'Local leaderboard and win/loss stats saved to your browser',
-                  },
-                ].map((f, i) => (
-                  <div
-                    key={i}
-                    className={`p-6 rounded-2xl border ${
-                      theme === 'dark'
-                        ? 'bg-white/5 border-white/10'
-                        : 'bg-white border-gray-200 shadow-sm'
-                    }`}
-                  >
-                    <div className="text-3xl mb-3">{f.emoji}</div>
-                    <h3 className={`font-bold mb-2 ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
-                      {f.title}
-                    </h3>
-                    <p className={`text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>
-                      {f.desc}
-                    </p>
-                  </div>
-                ))}
-              </motion.div>
             </div>
 
             {/* Footer */}

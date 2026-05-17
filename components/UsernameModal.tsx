@@ -2,7 +2,15 @@
 
 import { useState } from 'react';
 import { motion } from 'framer-motion';
-import { User, Check, MapPin } from 'lucide-react';
+import { User, Check } from 'lucide-react';
+
+const CITIES = [
+  'Almaty', 'Astana', 'Shymkent', 'Karaganda', 'Aktobe',
+  'Taraz', 'Pavlodar', 'Semey', 'Atyrau', 'Kostanay',
+  'Oral', 'Ust-Kamenogorsk', 'Bishkek', 'Tashkent',
+  'Moscow', 'Dubai', 'Istanbul', 'London', 'New York',
+  'Berlin', 'Paris', 'Toronto', 'Tokyo', 'Seoul',
+];
 import { setUsername, getCity, setCity } from '@/lib/storage';
 
 interface UsernameModalProps {
@@ -26,9 +34,9 @@ export default function UsernameModal({
   const handleSave = () => {
     const trimmed = name.trim();
     if (!trimmed) return;
-    setCity(city.trim());
+    setCity(city);
     setUsername(trimmed);
-    onSave(trimmed, city.trim());
+    onSave(trimmed, city);
     onClose();
   };
 
@@ -70,15 +78,18 @@ export default function UsernameModal({
         />
 
         <div className="relative mb-6">
-          <MapPin size={14} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none" />
-          <input
-            type="text"
+          <select
             value={city}
-            onChange={e => setCityState(e.target.value.slice(0, 30))}
-            placeholder="Your city (optional)"
-            onKeyDown={e => e.key === 'Enter' && handleSave()}
-            className="w-full pl-9 pr-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-amber-400 text-center text-sm"
-          />
+            onChange={e => setCityState(e.target.value)}
+            className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white focus:outline-none focus:border-amber-400 text-sm appearance-none cursor-pointer"
+            style={{ colorScheme: 'dark' }}
+          >
+            <option value="">No city</option>
+            {CITIES.map(c => (
+              <option key={c} value={c}>{c}</option>
+            ))}
+          </select>
+          <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-gray-400 text-xs">▼</div>
         </div>
 
         <div className="flex gap-3">

@@ -24,6 +24,17 @@ export default function Leaderboard({ entries, currentUsername, theme = 'dark' }
     : entries.filter(e => e.city === cityFilter);
 
   const top = filtered.slice(0, 8);
+  const currentUserEntry = currentUsername
+    ? entries.find(e => e.username === currentUsername)
+    : null;
+  const currentUserRank = currentUsername
+    ? entries.findIndex(e => e.username === currentUsername) + 1
+    : 0;
+  const showCurrentUserSeparately = !!(
+    currentUserEntry &&
+    currentUserRank > 8 &&
+    !top.find(e => e.username === currentUsername)
+  );
 
   return (
     <div className={`rounded-2xl border overflow-hidden ${
@@ -62,6 +73,7 @@ export default function Leaderboard({ entries, currentUsername, theme = 'dark' }
           </div>
         )}
         {top.map((player, i) => {
+          const globalRank = entries.findIndex(e => e.username === player.username);
           const isMe = player.username === currentUsername;
           const winRate = player.gamesPlayed > 0
             ? Math.round((player.wins / player.gamesPlayed) * 100)
@@ -80,10 +92,10 @@ export default function Leaderboard({ entries, currentUsername, theme = 'dark' }
               }`}
             >
               <div className="w-6 text-center flex-shrink-0">
-                {i < 3 ? (
-                  <span className="text-base">{medals[i]}</span>
+                {globalRank < 3 ? (
+                  <span className="text-base">{medals[globalRank]}</span>
                 ) : (
-                  <span className={`text-sm font-mono ${dk ? 'text-gray-500' : 'text-gray-400'}`}>{i + 1}</span>
+                  <span className={`text-sm font-mono ${dk ? 'text-gray-500' : 'text-gray-400'}`}>{globalRank + 1}</span>
                 )}
               </div>
 
@@ -119,6 +131,45 @@ export default function Leaderboard({ entries, currentUsername, theme = 'dark' }
             </motion.div>
           );
         })}
+
+        {/* Current user when outside top 8 */}
+        {showCurrentUserSeparately && currentUserEntry && (
+          <>
+            <div className={`px-4 py-1 text-center text-xs ${dk ? 'text-gray-600' : 'text-gray-400'}`}>• • •</div>
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              className="flex items-center gap-3 px-4 py-3 bg-amber-500/10"
+            >
+              <div className="w-6 text-center flex-shrink-0">
+                <span className={`text-sm font-mono ${dk ? 'text-gray-500' : 'text-gray-400'}`}>{currentUserRank}</span>
+              </div>
+              <div className="w-7 h-7 rounded-full bg-gradient-to-br from-amber-400 to-red-500 text-white flex items-center justify-center text-xs font-bold flex-shrink-0">
+                {currentUserEntry.username[0]?.toUpperCase() || '?'}
+              </div>
+              <div className="flex-1 min-w-0">
+                <div className="text-sm font-medium text-amber-500 truncate">
+                  {currentUserEntry.username}
+                  <span className="ml-1 text-xs text-amber-400">(you)</span>
+                </div>
+                <div className={`text-xs ${dk ? 'text-gray-500' : 'text-gray-400'}`}>
+                  {currentUserEntry.city && <span>{currentUserEntry.city} · </span>}
+                  {currentUserEntry.wins}W {currentUserEntry.losses}L {currentUserEntry.draws}D
+                </div>
+              </div>
+              <div className="flex flex-col items-end flex-shrink-0">
+                <div className={`text-sm font-bold ${
+                  currentUserEntry.gamesPlayed > 0 && Math.round(currentUserEntry.wins / currentUserEntry.gamesPlayed * 100) >= 60 ? 'text-green-500' :
+                  currentUserEntry.gamesPlayed > 0 && Math.round(currentUserEntry.wins / currentUserEntry.gamesPlayed * 100) >= 40 ? 'text-yellow-500' :
+                  'text-red-500'
+                }`}>
+                  {currentUserEntry.gamesPlayed > 0 ? Math.round(currentUserEntry.wins / currentUserEntry.gamesPlayed * 100) : 0}%
+                </div>
+                <div className={`text-xs ${dk ? 'text-gray-500' : 'text-gray-400'}`}>win rate</div>
+              </div>
+            </motion.div>
+          </>
+        )}
       </div>
     </div>
   );
