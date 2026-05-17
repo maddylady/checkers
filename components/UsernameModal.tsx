@@ -50,7 +50,7 @@ export default function UsernameModal({
       <motion.div
         initial={{ scale: 0.9, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
-        className="relative bg-gradient-to-br from-gray-900 to-gray-800 rounded-3xl p-8 border border-white/10 shadow-2xl max-w-sm w-full"
+        className="relative bg-gradient-to-br from-gray-900 to-gray-800 rounded-3xl p-6 sm:p-8 border border-white/10 shadow-2xl max-w-sm w-full max-h-[90vh] overflow-y-auto"
       >
         <div className="flex justify-center mb-6">
           <div className="p-4 bg-amber-500/20 rounded-2xl">

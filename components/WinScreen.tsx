@@ -138,7 +138,7 @@ export default function WinScreen({
         {/* Backdrop */}
         <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" />
 
-        <div className="relative bg-gradient-to-br from-gray-900 to-gray-800 rounded-3xl p-8 border border-white/10 shadow-2xl max-w-md w-full">
+        <div className="relative bg-gradient-to-br from-gray-900 to-gray-800 rounded-3xl p-6 sm:p-8 border border-white/10 shadow-2xl max-w-md w-full max-h-[90vh] overflow-y-auto">
           {/* Trophy */}
           <motion.div
             initial={{ y: -20, opacity: 0 }}

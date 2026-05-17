@@ -54,12 +54,13 @@ function ProModal({ onClose }: { onClose: () => void }) {
         animate={{ scale: 1, y: 0, opacity: 1 }}
         exit={{ scale: 0.9, y: 20, opacity: 0 }}
         transition={{ type: 'spring', stiffness: 300, damping: 25 }}
-        className="relative bg-gradient-to-br from-gray-900 via-purple-950/30 to-gray-900 rounded-3xl p-8 border border-purple-500/30 shadow-2xl max-w-md w-full"
+        className="relative bg-gradient-to-br from-gray-900 via-purple-950/30 to-gray-900 rounded-3xl border border-purple-500/30 shadow-2xl max-w-md w-full max-h-[90vh] flex flex-col"
       >
-        <button onClick={onClose} className="absolute top-4 right-4 text-gray-400 hover:text-white transition-colors">
+        <button onClick={onClose} className="absolute top-4 right-4 text-gray-400 hover:text-white transition-colors z-10">
           <X size={20} />
         </button>
-        <div className="text-center mb-8">
+        <div className="overflow-y-auto p-6 sm:p-8">
+        <div className="text-center mb-6">
           <div className="flex justify-center mb-4">
             <div className="p-3 bg-gradient-to-br from-purple-500 to-amber-500 rounded-2xl">
               <Crown size={32} className="text-white" />
@@ -115,6 +116,7 @@ function ProModal({ onClose }: { onClose: () => void }) {
           </motion.button>
         )}
         <p className="text-center text-xs text-gray-500 mt-3">Cancel anytime • Secure payment via Stripe</p>
+        </div>{/* end scrollable */}
       </motion.div>
     </motion.div>
   );
@@ -223,10 +225,10 @@ export default function Navbar({ theme, onThemeToggle, username, onUsernameChang
           )}
 
           {/* Coins badge */}
-          {coins !== undefined && (
-            <div className="flex items-center gap-1 px-3 py-1.5 rounded-full bg-amber-500/10 border border-amber-500/20">
+          {coins !== undefined && coins > 0 && (
+            <div className="flex items-center gap-1 px-2 py-1.5 rounded-full bg-amber-500/10 border border-amber-500/20">
               <span className="text-amber-400 text-sm">🪙</span>
-              <span className="text-amber-400 text-sm font-bold">{coins}</span>
+              <span className="text-amber-400 text-xs font-bold">{coins}</span>
             </div>
           )}
 
