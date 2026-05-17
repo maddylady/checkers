@@ -197,7 +197,7 @@ export default function ModeSelector({ onSelect }: ModeSelectorProps) {
             {modes.map(({ mode, icon, title, desc, color, badge }) => (
               <motion.button
                 key={mode}
-                whileHover={{ scale: 1.02, x: 4 }}
+                whileHover={{ scale: 1.01 }}
                 whileTap={{ scale: 0.98 }}
                 onClick={() => {
                   if (mode === 'ai' || mode === 'mines' || mode === 'roulette') {
@@ -249,13 +249,13 @@ export default function ModeSelector({ onSelect }: ModeSelectorProps) {
                         initial={{ opacity: 0, y: 12 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: i * 0.04 }}
-                        whileHover={{ scale: 1.03, y: -2 }}
+                        whileHover={{ y: -3 }}
                         whileTap={{ scale: 0.97 }}
                         onClick={() => onSelect(pendingMode, bot.difficulty, undefined, bot.name, bot.elo)}
                         className="flex flex-col items-center text-center p-3 rounded-2xl bg-white/5 hover:bg-white/10 border border-white/10 hover:border-white/25 transition-all group"
                       >
                         {/* Avatar */}
-                        <div className={`w-14 h-14 rounded-2xl bg-gradient-to-br ${bot.color} flex items-center justify-center text-3xl mb-2 shadow-lg group-hover:scale-105 transition-transform`}>
+                        <div className={`w-14 h-14 rounded-2xl bg-gradient-to-br ${bot.color} flex items-center justify-center text-3xl mb-2 shadow-lg`}>
                           {bot.emoji}
                         </div>
 
