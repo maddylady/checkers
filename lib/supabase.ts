@@ -57,6 +57,54 @@ export async function addGameRecord(record: {
   if (error) console.error('[Supabase] game_history insert error:', error);
 }
 
+export interface AuthUser {
+  id: string;
+  isGoogle: boolean;
+  name?: string;
+  avatar?: string;
+}
+
+export async function signInWithGoogle(): Promise<void> {
+  if (!supabase) return;
+  await supabase.auth.signInWithOAuth({
+    provider: 'google',
+    options: { redirectTo: typeof window !== 'undefined' ? window.location.origin : '' },
+  });
+}
+
+export async function signOut(): Promise<void> {
+  if (!supabase) return;
+  await supabase.auth.signOut();
+}
+
+export async function getAuthUser(): Promise<AuthUser | null> {
+  if (!supabase) return null;
+  const { data: { session } } = await supabase.auth.getSession();
+  if (!session?.user) return null;
+  const u = session.user;
+  return {
+    id: u.id,
+    isGoogle: u.app_metadata?.provider === 'google',
+    name: u.user_metadata?.full_name ?? u.user_metadata?.name,
+    avatar: u.user_metadata?.avatar_url,
+  };
+}
+
+export function onAuthStateChange(callback: (user: AuthUser | null) => void) {
+  if (!supabase) return () => {};
+  const { data } = supabase.auth.onAuthStateChange((_event, session) => {
+    if (!session?.user) { callback(null); return; }
+    const u = session.user;
+    callback({
+      id: u.id,
+      isGoogle: u.app_metadata?.provider === 'google',
+      name: u.user_metadata?.full_name ?? u.user_metadata?.name,
+      avatar: u.user_metadata?.avatar_url,
+    });
+  });
+  return () => data.subscription.unsubscribe();
+}
+
 export async function fetchLeaderboard(): Promise<PlayerStats[]> {
   if (!supabase) return [];
 
