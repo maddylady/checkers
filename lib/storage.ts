@@ -1,4 +1,5 @@
 import type { GameRecord, PlayerStats } from './game-logic';
+import { syncPlayerStats, addGameRecord } from './supabase';
 
 const STORAGE_KEYS = {
   USERNAME: 'checkmate_arena_username',
@@ -81,6 +82,9 @@ export function recordGameResult(
   stats.city = getCity();
 
   saveStats(stats);
+  // Sync to Supabase in background — fire and forget
+  syncPlayerStats(stats).catch(() => {});
+  addGameRecord({ mode, result, opponent, moves, duration }).catch(() => {});
 
   // Save to history
   const history = getGameHistory();

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Navbar from '@/components/Navbar';
 import ModeSelector, { type GameMode } from '@/components/ModeSelector';
@@ -17,6 +17,7 @@ import {
   setTheme,
   seedLeaderboardIfEmpty,
 } from '@/lib/storage';
+import { fetchLeaderboard } from '@/lib/supabase';
 import type { Difficulty } from '@/lib/ai';
 import type { PlayerStats, GameRecord } from '@/lib/game-logic';
 import { Swords, Shield, Brain, Globe } from 'lucide-react';
@@ -41,6 +42,13 @@ export default function HomePage() {
   const [history, setHistory] = useState<GameRecord[]>(() => getGameHistory());
   const [statsTab, setStatsTab] = useState<'stats' | 'history'>('stats');
 
+  // Fetch real leaderboard from Supabase on mount
+  useEffect(() => {
+    fetchLeaderboard().then(data => {
+      if (data.length > 0) setLeaderboard(data);
+    }).catch(() => {});
+  }, []);
+
   const handleThemeToggle = () => {
     const newTheme = theme === 'dark' ? 'light' : 'dark';
     setThemeState(newTheme);
@@ -64,9 +72,12 @@ export default function HomePage() {
 
   const handleExitGame = () => {
     setScreen('home');
-    setLeaderboard(getLeaderboard());
     setStats(getStats());
     setHistory(getGameHistory());
+    // Refresh leaderboard from Supabase after game
+    fetchLeaderboard().then(data => {
+      setLeaderboard(data.length > 0 ? data : getLeaderboard());
+    }).catch(() => setLeaderboard(getLeaderboard()));
   };
 
   return (
