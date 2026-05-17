@@ -190,7 +190,7 @@ export default function HomePage() {
                   transition={{ delay: 0.2 }}
                   className={selectorStep === 'mode' ? 'lg:col-span-3' : 'col-span-full'}
                 >
-                  <div className="rounded-3xl p-6 border bg-white border-gray-200 dark:bg-gray-900/80 dark:border-white/10 backdrop-blur-sm shadow-lg">
+                  <div className="rounded-3xl p-4 border bg-white border-gray-200 dark:bg-gray-900/80 dark:border-white/10 backdrop-blur-sm shadow-lg">
                     <ModeSelector
                       key={selectorKey}
                       onSelect={handleModeSelect}

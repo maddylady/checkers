@@ -226,7 +226,7 @@ export default function ModeSelector({ onSelect, onStepChange, rulesVariant = 'a
   ];
 
   return (
-    <div className="max-w-xl mx-auto">
+    <div className="max-w-2xl mx-auto">
       <AnimatePresence mode="wait">
 
         {/* ── Mode selection ── */}
