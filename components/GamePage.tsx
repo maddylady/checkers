@@ -24,7 +24,7 @@ import {
 import { getBestMove, type Difficulty } from '@/lib/ai';
 import { recordGameResult } from '@/lib/storage';
 import { type GameExtras } from '@/lib/challenges';
-import type { GameMode } from './ModeSelector';
+import type { GameMode, TimeControl } from './ModeSelector';
 import { ArrowLeft, Copy, Check as CheckIcon } from 'lucide-react';
 
 type SocketType = ReturnType<typeof import('socket.io-client').io>;
@@ -39,6 +39,7 @@ interface GamePageProps {
   botElo?: number;
   onExit: () => void;
   rulesVariant?: RulesVariant;
+  timeControl?: TimeControl;
 }
 
 export default function GamePage({
@@ -51,12 +52,16 @@ export default function GamePage({
   botElo,
   onExit,
   rulesVariant = 'american',
+  timeControl,
 }: GamePageProps) {
   const [gameState, setGameState] = useState<GameState>(createInitialGameState(rulesVariant));
   const [playerColor, setPlayerColor] = useState<Player>(initialPlayerColor || 'red');
   const [showWin, setShowWin] = useState(false);
   const [analysisNotes, setAnalysisNotes] = useState<AnalysisNote[]>([]);
   const [turnTimer, setTurnTimer] = useState<number>(30);
+  const [playerTimes, setPlayerTimes] = useState<{ red: number; black: number } | null>(
+    timeControl?.type === 'game' ? { red: timeControl.seconds, black: timeControl.seconds } : null
+  );
   const [copied, setCopied] = useState(false);
   const [onlineStatus, setOnlineStatus] = useState<'connecting' | 'waiting' | 'playing' | 'opponent-disconnected' | 'error'>('connecting');
   const [opponentName, setOpponentName] = useState<string>('');
@@ -77,6 +82,7 @@ export default function GamePage({
 
   const gameStartTime = useRef<number>(0);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const gameTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const timerCountRef = useRef<number>(30);
   const gameStateRef = useRef<GameState>(gameState);
   const playerColorRef = useRef<Player>(playerColor);
@@ -218,6 +224,9 @@ export default function GamePage({
     extraTurnRef.current = false;
     boardHistoryRef.current = [cloneBoard(freshState.board)];
     setReplayIndex(null);
+    if (timeControl?.type === 'game') {
+      setPlayerTimes({ red: timeControl.seconds, black: timeControl.seconds });
+    }
   };
 
   const handleResign = () => {
@@ -232,9 +241,15 @@ export default function GamePage({
     }
   };
 
-  // ---- Timer ----
+  // ---- Move timer (per-turn countdown) ----
   useEffect(() => {
-    // Only run the timer when it's the local player's active turn
+    const effectiveType = timeControl?.type ?? 'move';
+    if (effectiveType === 'none' || effectiveType === 'game') {
+      if (timerRef.current) clearInterval(timerRef.current);
+      return;
+    }
+    const expiry = timeControl?.type === 'move' ? timeControl.expiry : 'random';
+
     const shouldRun =
       gameState.status === 'playing' &&
       (mode === 'local' ||
@@ -254,10 +269,17 @@ export default function GamePage({
 
       if (timerCountRef.current <= 0) {
         if (mode !== 'online') {
-          // Auto-pick a random move for local/AI modes
-          const moves = getAllValidMoves(gameStateRef.current.board, gameStateRef.current.currentPlayer, rulesVariant);
-          if (moves.length > 0) {
-            handleMove(moves[Math.floor(Math.random() * moves.length)]);
+          if (expiry === 'lose') {
+            const loser = gameStateRef.current.currentPlayer;
+            setGameState(prev => ({
+              ...prev,
+              status: loser === 'red' ? 'black_wins' : 'red_wins',
+            }));
+          } else {
+            const moves = getAllValidMoves(gameStateRef.current.board, gameStateRef.current.currentPlayer, rulesVariant);
+            if (moves.length > 0) {
+              handleMove(moves[Math.floor(Math.random() * moves.length)]);
+            }
           }
         }
         timerCountRef.current = 30;
@@ -302,6 +324,35 @@ export default function GamePage({
     return () => clearTimeout(timer);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [gameState.currentPlayer, gameState.status, mode]);
+
+  // ---- Game clock (total time per player) ----
+  useEffect(() => {
+    if (timeControl?.type !== 'game') return;
+    if (gameState.status !== 'playing') {
+      if (gameTimerRef.current) clearInterval(gameTimerRef.current);
+      return;
+    }
+    const currentPlayer = gameState.currentPlayer;
+    if (gameTimerRef.current) clearInterval(gameTimerRef.current);
+    gameTimerRef.current = setInterval(() => {
+      setPlayerTimes(prev => {
+        if (!prev) return prev;
+        return { ...prev, [currentPlayer]: Math.max(0, prev[currentPlayer] - 1) };
+      });
+    }, 1000);
+    return () => { if (gameTimerRef.current) clearInterval(gameTimerRef.current); };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [gameState.currentPlayer, gameState.status]);
+
+  useEffect(() => {
+    if (timeControl?.type !== 'game' || !playerTimes || gameState.status !== 'playing') return;
+    if (playerTimes.red <= 0) {
+      setGameState(prev => ({ ...prev, status: 'black_wins' }));
+    } else if (playerTimes.black <= 0) {
+      setGameState(prev => ({ ...prev, status: 'red_wins' }));
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [playerTimes]);
 
   // ---- Win detection ----
   useEffect(() => {
@@ -494,6 +545,12 @@ export default function GamePage({
     }
   };
 
+  const formatTime = (s: number) => {
+    const m = Math.floor(s / 60);
+    const sec = s % 60;
+    return `${m}:${sec.toString().padStart(2, '0')}`;
+  };
+
   const isPlayerTurn =
     mode === 'local' ||
     ((mode === 'ai' || mode === 'mines' || mode === 'roulette') && gameState.currentPlayer === playerColor && !rouletteSpinning) ||
@@ -561,7 +618,7 @@ export default function GamePage({
             onRestart={handleRestart}
             onResign={handleResign}
             playerColor={mode !== 'local' ? playerColor : undefined}
-            turnTimer={turnTimer}
+            turnTimer={(timeControl?.type === 'none' || timeControl?.type === 'game') ? undefined : turnTimer}
             opponentName={(mode === 'ai' || mode === 'mines' || mode === 'roulette') ? (botName || `AI (${difficulty})`) : opponentName}
             thinking={thinking}
           />
@@ -721,6 +778,15 @@ export default function GamePage({
                   className="w-2 h-2 rounded-full bg-green-400"
                 />
               )}
+              {playerTimes && (
+                <span className={`ml-1 font-mono text-sm font-bold tabular-nums px-2 py-0.5 rounded-lg ${
+                  gameState.currentPlayer === 'black' && gameState.status === 'playing'
+                    ? playerTimes.black <= 10 ? 'bg-red-500/20 text-red-400 animate-pulse' : 'bg-white/10 text-white'
+                    : 'text-gray-500'
+                }`}>
+                  {formatTime(playerTimes.black)}
+                </span>
+              )}
             </div>
 
             <div ref={boardWrapperRef}>
@@ -748,6 +814,15 @@ export default function GamePage({
                   transition={{ repeat: Infinity, duration: 0.8 }}
                   className="w-2 h-2 rounded-full bg-green-400"
                 />
+              )}
+              {playerTimes && (
+                <span className={`ml-1 font-mono text-sm font-bold tabular-nums px-2 py-0.5 rounded-lg ${
+                  gameState.currentPlayer === 'red' && gameState.status === 'playing'
+                    ? playerTimes.red <= 10 ? 'bg-red-500/20 text-red-400 animate-pulse' : 'bg-white/10 text-white'
+                    : 'text-gray-500'
+                }`}>
+                  {formatTime(playerTimes.red)}
+                </span>
               )}
             </div>
           </div>

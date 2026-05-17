@@ -7,7 +7,7 @@ import { BADGES, type Badge } from '@/lib/badges';
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Navbar from '@/components/Navbar';
-import ModeSelector, { type GameMode } from '@/components/ModeSelector';
+import ModeSelector, { type GameMode, type TimeControl } from '@/components/ModeSelector';
 import GamePage from '@/components/GamePage';
 import Leaderboard from '@/components/Leaderboard';
 import UsernameModal from '@/components/UsernameModal';
@@ -58,6 +58,8 @@ export default function HomePage() {
   const [newBadge, setNewBadge] = useState<Badge | null>(null);
   const [streak, setStreak] = useState(0);
   const [viewingPlayer, setViewingPlayer] = useState<import('@/lib/game-logic').PlayerStats | null>(null);
+  const [selectorStep, setSelectorStep] = useState<string>('mode');
+  const [timeControl, setTimeControl] = useState<TimeControl>({ type: 'move', expiry: 'random' });
 
   // Load all localStorage state after hydration to avoid server/client mismatch
   useEffect(() => {
@@ -113,17 +115,20 @@ export default function HomePage() {
     setStats(getStats());
   };
 
-  const handleModeSelect = (mode: GameMode, diff?: Difficulty, code?: string, name?: string, elo?: number) => {
+  const handleModeSelect = (mode: GameMode, diff?: Difficulty, code?: string, name?: string, elo?: number, tc?: TimeControl, variant?: RulesVariant) => {
     setGameMode(mode);
     if (diff) setDifficulty(diff);
     if (code) setRoomCode(code);
     setBotName(name);
     setBotElo(elo);
+    if (tc) setTimeControl(tc);
+    if (variant) setRulesVariantState(variant);
     setScreen('game');
   };
 
   const handleExitGame = () => {
     setScreen('home');
+    setSelectorStep('mode');
     setStats(getStats());
     setHistory(getGameHistory());
     setCoins(getCoins());
@@ -162,7 +167,7 @@ export default function HomePage() {
         googleUser={googleUser}
         coins={coins}
         onShopOpen={() => setShowShop(true)}
-        onLogoClick={() => { setScreen('home'); setSelectorKey(k => k + 1); }}
+        onLogoClick={() => { setScreen('home'); setSelectorKey(k => k + 1); setSelectorStep('mode'); }}
         onProfileOpen={() => setShowProfile(true)}
         onRulesOpen={() => setShowRules(true)}
       />
@@ -179,25 +184,35 @@ export default function HomePage() {
             <div className="max-w-6xl mx-auto px-4 py-4">
 
               {/* Main two-column grid */}
-              <div className="grid lg:grid-cols-5 gap-5 items-start">
+              <div className={`grid gap-5 items-start ${selectorStep === 'mode' ? 'lg:grid-cols-5' : 'lg:grid-cols-1'}`}>
 
                 {/* Left — Mode Selector */}
                 <motion.div
                   initial={{ opacity: 0, x: -16 }}
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ delay: 0.2 }}
-                  className="lg:col-span-3"
+                  className={selectorStep === 'mode' ? 'lg:col-span-3' : 'col-span-full'}
                 >
                   <div className="rounded-3xl p-6 border bg-gray-900/80 border-white/10 backdrop-blur-sm shadow-lg">
-                    <ModeSelector key={selectorKey} onSelect={handleModeSelect} />
+                    <ModeSelector
+                      key={selectorKey}
+                      onSelect={handleModeSelect}
+                      onStepChange={setSelectorStep}
+                      rulesVariant={rulesVariant}
+                      onVariantChange={(v) => { setRulesVariantState(v); setRulesVariant(v); }}
+                    />
                   </div>
                 </motion.div>
 
                 {/* Right — Tabbed sidebar */}
+                <AnimatePresence>
+                {selectorStep === 'mode' && (
                 <motion.div
+                  key="sidebar"
                   initial={{ opacity: 0, x: 16 }}
                   animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: 0.3 }}
+                  exit={{ opacity: 0, x: 16 }}
+                  transition={{ duration: 0.2 }}
                   className="lg:col-span-2 flex flex-col gap-3"
                 >
                   {/* Tab switcher */}
@@ -387,6 +402,8 @@ export default function HomePage() {
                     )}
                   </AnimatePresence>
                 </motion.div>
+                )}
+                </AnimatePresence>
               </div>
 
             </div>
@@ -413,6 +430,7 @@ export default function HomePage() {
               botElo={botElo}
               onExit={handleExitGame}
               rulesVariant={rulesVariant}
+              timeControl={timeControl}
             />
           </motion.div>
         )}
