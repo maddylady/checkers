@@ -47,7 +47,7 @@ export default function HomePage() {
   const [leaderboard, setLeaderboard] = useState<PlayerStats[]>([]);
   const [stats, setStats] = useState<PlayerStats | null>(null);
   const [history, setHistory] = useState<GameRecord[]>([]);
-  const [sidebarTab, setSidebarTab] = useState<'leaderboard' | 'stats' | 'challenges'>('leaderboard');
+  const [sidebarTab, setSidebarTab] = useState<'leaderboard' | 'stats' | 'challenges' | 'rules'>('leaderboard');
   const [googleUser, setGoogleUser] = useState<AuthUser | null>(null);
   const [coins, setCoins] = useState(0);
   const [showShop, setShowShop] = useState(false);
@@ -206,6 +206,7 @@ export default function HomePage() {
                       { id: 'leaderboard', label: '🏆 Top' },
                       { id: 'stats',       label: '📊 Stats' },
                       { id: 'challenges',  label: '🎯 Daily' },
+                      { id: 'rules',       label: '📖 Rules' },
                     ] as const).map(tab => (
                       <button
                         key={tab.id}
@@ -314,6 +315,74 @@ export default function HomePage() {
                     {sidebarTab === 'challenges' && (
                       <motion.div key="challenges" initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}>
                         <DailyChallenges />
+                      </motion.div>
+                    )}
+
+                    {sidebarTab === 'rules' && (
+                      <motion.div key="rules" initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}>
+                        <div className="rounded-2xl border p-4 bg-white/5 border-white/10 space-y-4">
+
+                          {/* Variant picker */}
+                          <div>
+                            <div className="text-xs text-gray-500 font-semibold uppercase tracking-wider mb-2">Ruleset</div>
+                            <div className="grid grid-cols-2 gap-2">
+                              {([
+                                { value: 'american', flag: '🇺🇸', label: 'American' },
+                                { value: 'russian',  flag: '🇷🇺', label: 'Russian'  },
+                              ] as const).map(v => (
+                                <button
+                                  key={v.value}
+                                  onClick={() => { setRulesVariantState(v.value); setRulesVariant(v.value); }}
+                                  className={`flex items-center gap-2 px-3 py-2 rounded-xl border text-sm font-semibold transition-all ${
+                                    rulesVariant === v.value
+                                      ? v.value === 'american'
+                                        ? 'border-amber-500 bg-amber-500/15 text-amber-400'
+                                        : 'border-blue-500 bg-blue-500/15 text-blue-400'
+                                      : 'border-white/10 text-gray-400 hover:border-white/20 hover:text-white'
+                                  }`}
+                                >
+                                  <span>{v.flag}</span>
+                                  <span>{v.label}</span>
+                                  {rulesVariant === v.value && <span className="ml-auto text-xs">✓</span>}
+                                </button>
+                              ))}
+                            </div>
+                            <p className="text-[11px] text-gray-600 mt-1.5">Takes effect on your next game.</p>
+                          </div>
+
+                          {/* Quick rules */}
+                          <div>
+                            <div className="text-xs text-gray-500 font-semibold uppercase tracking-wider mb-2">How to play</div>
+                            <div className="space-y-2">
+                              {[
+                                { icon: '🎯', title: 'Goal', text: 'Capture all opponent pieces or leave them with no legal move.' },
+                                { icon: '↗️', title: 'Movement', text: 'Pieces move diagonally forward. Kings move in all 4 diagonal directions.' },
+                                { icon: '💥', title: 'Mandatory capture', text: 'If a capture is available you must take it — no skipping.' },
+                                { icon: '🔗', title: 'Multi-jump', text: 'After a capture, continue jumping with the same piece if possible.' },
+                                { icon: '👑', title: 'Promotion', text: 'Reach the far row to become a King with enhanced movement.' },
+                              ].map(r => (
+                                <div key={r.icon} className="flex gap-2.5 items-start">
+                                  <span className="text-base flex-shrink-0 mt-0.5">{r.icon}</span>
+                                  <div>
+                                    <span className="text-xs font-semibold text-white">{r.title} </span>
+                                    <span className="text-xs text-gray-400">{r.text}</span>
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+
+                          {/* Variant difference callout */}
+                          <div className={`rounded-xl p-3 text-xs ${
+                            rulesVariant === 'russian'
+                              ? 'bg-blue-500/10 border border-blue-500/20 text-blue-300'
+                              : 'bg-amber-500/10 border border-amber-500/20 text-amber-300'
+                          }`}>
+                            {rulesVariant === 'russian'
+                              ? '🇷🇺 Russian: Kings are flying — slide any distance. Regular pieces capture backward too. Promotion mid-chain continues as a king.'
+                              : '🇺🇸 American: Kings move 1 square only. Captures are forward only for regular pieces. Promotion ends the capture chain.'}
+                          </div>
+                        </div>
                       </motion.div>
                     )}
                   </AnimatePresence>
