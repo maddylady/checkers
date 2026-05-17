@@ -43,6 +43,7 @@ export interface PlayerStats {
   draws: number;
   gamesPlayed: number;
   city?: string;
+  elo: number;
 }
 
 let pieceIdCounter = 0;

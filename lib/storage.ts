@@ -37,18 +37,20 @@ export function setUsername(name: string): void {
   const lb = getLeaderboard();
   const existing = lb.find(p => p.username === name);
   if (!existing) {
-    lb.push({ username: name, wins: 0, losses: 0, draws: 0, gamesPlayed: 0, city: getCity() });
+    lb.push({ username: name, wins: 0, losses: 0, draws: 0, gamesPlayed: 0, city: getCity(), elo: 1200 });
     saveLeaderboard(lb);
   }
 }
 
 export function getStats(): PlayerStats {
   if (typeof window === 'undefined') {
-    return { username: '', wins: 0, losses: 0, draws: 0, gamesPlayed: 0 };
+    return { username: '', wins: 0, losses: 0, draws: 0, gamesPlayed: 0, elo: 1200 };
   }
   const raw = localStorage.getItem(STORAGE_KEYS.STATS);
-  if (!raw) return { username: getUsername(), wins: 0, losses: 0, draws: 0, gamesPlayed: 0, city: getCity() };
-  return JSON.parse(raw);
+  if (!raw) return { username: getUsername(), wins: 0, losses: 0, draws: 0, gamesPlayed: 0, city: getCity(), elo: 1200 };
+  const parsed = JSON.parse(raw) as PlayerStats;
+  if (!parsed.elo) parsed.elo = 1200;
+  return parsed;
 }
 
 export function saveStats(stats: PlayerStats): void {
@@ -63,8 +65,7 @@ export function saveStats(stats: PlayerStats): void {
   } else {
     lb.push(stats);
   }
-  // Sort by wins descending
-  lb.sort((a, b) => b.wins - a.wins || a.losses - b.losses);
+  lb.sort((a, b) => (b.elo ?? 1200) - (a.elo ?? 1200) || b.wins - a.wins);
   saveLeaderboard(lb);
 }
 
@@ -121,6 +122,13 @@ export function updateStreak(): number {
   return newCount;
 }
 
+function calcElo(myElo: number, oppElo: number, result: 'win' | 'loss' | 'draw', gamesPlayed: number): number {
+  const K = gamesPlayed < 20 ? 32 : 16;
+  const expected = 1 / (1 + Math.pow(10, (oppElo - myElo) / 400));
+  const actual = result === 'win' ? 1 : result === 'loss' ? 0 : 0.5;
+  return Math.max(100, Math.round(myElo + K * (actual - expected)));
+}
+
 export function recordGameResult(
   result: 'win' | 'loss' | 'draw',
   mode: string,
@@ -138,6 +146,7 @@ export function recordGameResult(
   stats.gamesPlayed++;
   stats.username = username;
   stats.city = getCity();
+  stats.elo = calcElo(stats.elo ?? 1200, extras?.opponentElo ?? 1200, result, stats.gamesPlayed - 1);
 
   saveStats(stats);
   // Sync to Supabase in background — fire and forget
@@ -213,14 +222,14 @@ export function seedLeaderboardIfEmpty(): void {
   const lb = getLeaderboard();
   if (lb.length === 0) {
     const fakeEntries: PlayerStats[] = [
-      { username: 'DragonKing99', wins: 142, losses: 23, draws: 8, gamesPlayed: 173, city: 'Almaty' },
-      { username: 'CheckMaster', wins: 98, losses: 41, draws: 12, gamesPlayed: 151, city: 'Astana' },
-      { username: 'QueenSlayer', wins: 87, losses: 55, draws: 5, gamesPlayed: 147, city: 'Almaty' },
-      { username: 'BoardWizard', wins: 76, losses: 48, draws: 9, gamesPlayed: 133, city: 'Bishkek' },
-      { username: 'NightRider', wins: 64, losses: 33, draws: 14, gamesPlayed: 111, city: 'Tashkent' },
-      { username: 'SteppeEagle', wins: 58, losses: 29, draws: 6, gamesPlayed: 93, city: 'Almaty' },
-      { username: 'IronKnight', wins: 51, losses: 44, draws: 11, gamesPlayed: 106, city: 'Astana' },
-      { username: 'AlphaMove', wins: 45, losses: 38, draws: 3, gamesPlayed: 86, city: 'Bishkek' },
+      { username: 'DragonKing99', wins: 142, losses: 23, draws: 8, gamesPlayed: 173, city: 'Almaty',    elo: 1847 },
+      { username: 'CheckMaster',  wins: 98,  losses: 41, draws: 12, gamesPlayed: 151, city: 'Astana',   elo: 1634 },
+      { username: 'QueenSlayer',  wins: 87,  losses: 55, draws: 5,  gamesPlayed: 147, city: 'Almaty',   elo: 1521 },
+      { username: 'BoardWizard',  wins: 76,  losses: 48, draws: 9,  gamesPlayed: 133, city: 'Bishkek',  elo: 1478 },
+      { username: 'NightRider',   wins: 64,  losses: 33, draws: 14, gamesPlayed: 111, city: 'Tashkent', elo: 1412 },
+      { username: 'SteppeEagle',  wins: 58,  losses: 29, draws: 6,  gamesPlayed: 93,  city: 'Almaty',   elo: 1389 },
+      { username: 'IronKnight',   wins: 51,  losses: 44, draws: 11, gamesPlayed: 106, city: 'Astana',   elo: 1298 },
+      { username: 'AlphaMove',    wins: 45,  losses: 38, draws: 3,  gamesPlayed: 86,  city: 'Bishkek',  elo: 1243 },
     ];
     saveLeaderboard(fakeEntries);
   }

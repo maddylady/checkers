@@ -8,7 +8,7 @@ import type { Difficulty } from '@/lib/ai';
 export type GameMode = 'ai' | 'local' | 'online' | 'mines' | 'roulette';
 
 interface ModeSelectorProps {
-  onSelect: (mode: GameMode, difficulty?: Difficulty, roomCode?: string, botName?: string) => void;
+  onSelect: (mode: GameMode, difficulty?: Difficulty, roomCode?: string, botName?: string, botElo?: number) => void;
 }
 
 interface BotCharacter {
@@ -251,7 +251,7 @@ export default function ModeSelector({ onSelect }: ModeSelectorProps) {
                         transition={{ delay: i * 0.04 }}
                         whileHover={{ scale: 1.03, y: -2 }}
                         whileTap={{ scale: 0.97 }}
-                        onClick={() => onSelect(pendingMode, bot.difficulty, undefined, bot.name)}
+                        onClick={() => onSelect(pendingMode, bot.difficulty, undefined, bot.name, bot.elo)}
                         className="flex flex-col items-center text-center p-3 rounded-2xl bg-white/5 hover:bg-white/10 border border-white/10 hover:border-white/25 transition-all group"
                       >
                         {/* Avatar */}

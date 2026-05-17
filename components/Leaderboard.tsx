@@ -75,9 +75,6 @@ export default function Leaderboard({ entries, currentUsername, theme = 'dark' }
         {top.map((player, i) => {
           const globalRank = entries.findIndex(e => e.username === player.username);
           const isMe = player.username === currentUsername;
-          const winRate = player.gamesPlayed > 0
-            ? Math.round((player.wins / player.gamesPlayed) * 100)
-            : 0;
 
           return (
             <motion.div
@@ -119,14 +116,10 @@ export default function Leaderboard({ entries, currentUsername, theme = 'dark' }
               </div>
 
               <div className="flex flex-col items-end flex-shrink-0">
-                <div className={`text-sm font-bold ${
-                  winRate >= 60 ? 'text-green-500' :
-                  winRate >= 40 ? 'text-yellow-500' :
-                  'text-red-500'
-                }`}>
-                  {winRate}%
+                <div className="text-sm font-bold text-amber-400">
+                  {player.elo ?? 1200}
                 </div>
-                <div className={`text-xs ${dk ? 'text-gray-500' : 'text-gray-400'}`}>win rate</div>
+                <div className={`text-xs ${dk ? 'text-gray-500' : 'text-gray-400'}`}>ELO</div>
               </div>
             </motion.div>
           );
@@ -158,14 +151,10 @@ export default function Leaderboard({ entries, currentUsername, theme = 'dark' }
                 </div>
               </div>
               <div className="flex flex-col items-end flex-shrink-0">
-                <div className={`text-sm font-bold ${
-                  currentUserEntry.gamesPlayed > 0 && Math.round(currentUserEntry.wins / currentUserEntry.gamesPlayed * 100) >= 60 ? 'text-green-500' :
-                  currentUserEntry.gamesPlayed > 0 && Math.round(currentUserEntry.wins / currentUserEntry.gamesPlayed * 100) >= 40 ? 'text-yellow-500' :
-                  'text-red-500'
-                }`}>
-                  {currentUserEntry.gamesPlayed > 0 ? Math.round(currentUserEntry.wins / currentUserEntry.gamesPlayed * 100) : 0}%
+                <div className="text-sm font-bold text-amber-400">
+                  {currentUserEntry.elo ?? 1200}
                 </div>
-                <div className={`text-xs ${dk ? 'text-gray-500' : 'text-gray-400'}`}>win rate</div>
+                <div className={`text-xs ${dk ? 'text-gray-500' : 'text-gray-400'}`}>ELO</div>
               </div>
             </motion.div>
           </>

@@ -121,5 +121,6 @@ export async function fetchLeaderboard(): Promise<PlayerStats[]> {
     losses: row.losses,
     draws: row.draws,
     gamesPlayed: row.games_played,
+    elo: 1200,
   }));
 }

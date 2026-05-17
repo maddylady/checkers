@@ -34,6 +34,7 @@ export default function HomePage() {
   const [difficulty, setDifficulty] = useState<Difficulty>('medium');
   const [roomCode, setRoomCode] = useState<string | undefined>();
   const [botName, setBotName] = useState<string | undefined>();
+  const [botElo, setBotElo] = useState<number | undefined>();
   const [username, setUsernameState] = useState('');
   const [city, setCityState] = useState('');
   const [isFirstTime, setIsFirstTime] = useState(true);
@@ -95,11 +96,12 @@ export default function HomePage() {
     setStats(getStats());
   };
 
-  const handleModeSelect = (mode: GameMode, diff?: Difficulty, code?: string, name?: string) => {
+  const handleModeSelect = (mode: GameMode, diff?: Difficulty, code?: string, name?: string, elo?: number) => {
     setGameMode(mode);
     if (diff) setDifficulty(diff);
     if (code) setRoomCode(code);
     setBotName(name);
+    setBotElo(elo);
     setScreen('game');
   };
 
@@ -218,9 +220,13 @@ export default function HomePage() {
                                 <div className="w-10 h-10 rounded-full bg-gradient-to-br from-amber-400 to-red-500 flex items-center justify-center text-white font-bold text-lg flex-shrink-0">
                                   {username[0]?.toUpperCase()}
                                 </div>
-                                <div className="min-w-0">
+                                <div className="min-w-0 flex-1">
                                   <div className={`font-bold truncate ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>{username}</div>
-                                  <div className="text-xs text-gray-400">{stats.gamesPlayed} games · {stats.gamesPlayed > 0 ? Math.round(stats.wins / stats.gamesPlayed * 100) : 0}% win rate</div>
+                                  <div className="text-xs text-gray-400">{stats.gamesPlayed} games played</div>
+                                </div>
+                                <div className="text-right flex-shrink-0">
+                                  <div className="text-xl font-black text-amber-400">{stats.elo ?? 1200}</div>
+                                  <div className="text-[10px] text-gray-500 uppercase tracking-wider">ELO</div>
                                 </div>
                               </div>
 
@@ -303,6 +309,7 @@ export default function HomePage() {
               roomCode={roomCode}
               username={username}
               botName={botName}
+              botElo={botElo}
               onExit={handleExitGame}
             />
           </motion.div>

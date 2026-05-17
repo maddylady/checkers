@@ -32,6 +32,7 @@ export interface GameExtras {
   playerCaptures: number;
   piecesLost: number;
   kingsOnBoard: number;
+  opponentElo?: number;
 }
 
 const DAILY_PROGRESS_KEY = 'checkmate_daily_progress';

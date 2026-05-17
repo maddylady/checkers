@@ -33,6 +33,7 @@ interface GamePageProps {
   username: string;
   playerColor?: Player;
   botName?: string;
+  botElo?: number;
   onExit: () => void;
 }
 
@@ -43,6 +44,7 @@ export default function GamePage({
   username,
   playerColor: initialPlayerColor,
   botName,
+  botElo,
   onExit,
 }: GamePageProps) {
   const [gameState, setGameState] = useState<GameState>(createInitialGameState());
@@ -316,6 +318,7 @@ export default function GamePage({
         playerCaptures: myCaptures,
         piecesLost: myLost,
         kingsOnBoard: myKings,
+        opponentElo: botElo ?? 1200,
       };
 
       recordGameResult(result, mode, opp, gameState.moveHistory.length, duration, extras);
