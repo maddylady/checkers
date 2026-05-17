@@ -86,6 +86,9 @@ export default function GamePage({
   // Move replay
   const [replayIndex, setReplayIndex] = useState<number | null>(null);
   const boardHistoryRef = useRef<BoardGrid[]>([]);
+  const boardWrapperRef = useRef<HTMLDivElement>(null);
+  const replayAnimRef = useRef<Animation | null>(null);
+  const skipFirstReplayAnim = useRef(true);
 
   // Keep refs current — useLayoutEffect runs sync after paint, safe for effects/handlers
   useLayoutEffect(() => {
@@ -437,6 +440,18 @@ export default function GamePage({
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [gameState.moveHistory.length, gameState.board]);
 
+  // ---- Smooth opacity pulse on replay navigation (no remount) ----
+  useLayoutEffect(() => {
+    if (skipFirstReplayAnim.current) { skipFirstReplayAnim.current = false; return; }
+    const el = boardWrapperRef.current;
+    if (!el) return;
+    replayAnimRef.current?.cancel();
+    replayAnimRef.current = el.animate(
+      [{ opacity: 0.45 }, { opacity: 1 }],
+      { duration: 250, easing: 'ease-out', fill: 'forwards' },
+    );
+  }, [replayIndex]);
+
   // ---- Roulette spin ----
   useEffect(() => {
     if (mode !== 'roulette') return;
@@ -708,12 +723,7 @@ export default function GamePage({
               )}
             </div>
 
-            <motion.div
-              key={replayIndex ?? 'live'}
-              initial={{ opacity: 0.5 }}
-              animate={{ opacity: 1 }}
-              transition={{ duration: 0.08 }}
-            >
+            <div ref={boardWrapperRef}>
               <Board
                 gameState={displayGameState}
                 onCellClick={handleCellClick}
@@ -722,7 +732,7 @@ export default function GamePage({
                 triggeredMines={triggeredMines}
                 showAllMines={gameState.status !== 'playing' ? mines : undefined}
               />
-            </motion.div>
+            </div>
 
             <div className="flex items-center gap-3">
               <div className="w-5 h-5 rounded-full bg-gradient-to-br from-red-400 to-red-700 border border-red-300" />
