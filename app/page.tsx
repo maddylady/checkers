@@ -354,9 +354,9 @@ export default function HomePage() {
           />
       )}
       <BadgeUnlockModal badge={newBadge} onClose={() => setNewBadge(null)} />
-      {showProfile && stats && (
+      {showProfile && (
         <ProfileModal
-          stats={stats}
+          stats={stats ?? { username, wins: 0, losses: 0, draws: 0, gamesPlayed: 0, elo: 1200 }}
           history={history}
           streak={streak}
           coins={coins}
