@@ -29,7 +29,7 @@ export interface GameState {
 export interface GameRecord {
   id: string;
   date: string;
-  mode: 'ai' | 'local' | 'online';
+  mode: string;
   result: 'win' | 'loss' | 'draw';
   opponent: string;
   moves: number;

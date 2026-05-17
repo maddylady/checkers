@@ -10,9 +10,11 @@ interface BoardProps {
   onCellClick: (row: number, col: number) => void;
   flipped?: boolean;
   disabled?: boolean;
+  triggeredMines?: Set<string>;
+  showAllMines?: Set<string>;
 }
 
-export default function Board({ gameState, onCellClick, flipped = false, disabled = false }: BoardProps) {
+export default function Board({ gameState, onCellClick, flipped = false, disabled = false, triggeredMines, showAllMines }: BoardProps) {
   const { board, selectedCell, validMoves, moveHistory } = gameState;
 
   const selectedMoves = selectedCell
@@ -140,6 +142,19 @@ export default function Board({ gameState, onCellClick, flipped = false, disable
                         />
                       ))}
                     </>
+                  )}
+
+                  {/* Mine indicator */}
+                  {(triggeredMines?.has(`${row},${col}`) || showAllMines?.has(`${row},${col}`)) && (
+                    <div className="absolute inset-0 flex items-center justify-center z-20 pointer-events-none">
+                      <motion.div
+                        initial={{ scale: 0 }}
+                        animate={{ scale: 1 }}
+                        className="text-2xl select-none"
+                      >
+                        {triggeredMines?.has(`${row},${col}`) ? '💥' : '💣'}
+                      </motion.div>
+                    </div>
                   )}
 
                   {/* Piece */}

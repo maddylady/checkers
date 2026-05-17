@@ -12,6 +12,7 @@ interface NavbarProps {
   username: string;
   onUsernameChange: () => void;
   googleUser: AuthUser | null;
+  coins?: number;
 }
 
 function GoogleIcon() {
@@ -118,7 +119,7 @@ function ProModal({ onClose }: { onClose: () => void }) {
   );
 }
 
-export default function Navbar({ theme, onThemeToggle, username, onUsernameChange, googleUser }: NavbarProps) {
+export default function Navbar({ theme, onThemeToggle, username, onUsernameChange, googleUser, coins }: NavbarProps) {
   const [showPro, setShowPro] = useState(false);
   const [showUserMenu, setShowUserMenu] = useState(false);
   const [signingIn, setSigningIn] = useState(false);
@@ -218,6 +219,14 @@ export default function Navbar({ theme, onThemeToggle, username, onUsernameChang
               <GoogleIcon />
               {signingIn ? 'Redirecting...' : 'Sign in'}
             </motion.button>
+          )}
+
+          {/* Coins badge */}
+          {coins !== undefined && (
+            <div className="flex items-center gap-1 px-3 py-1.5 rounded-full bg-amber-500/10 border border-amber-500/20">
+              <span className="text-amber-400 text-sm">🪙</span>
+              <span className="text-amber-400 text-sm font-bold">{coins}</span>
+            </div>
           )}
 
           {/* Theme toggle */}

@@ -12,6 +12,7 @@ import {
   getAllValidMoves,
   analyzeGame,
   isLegalMove,
+  checkWinCondition,
   type GameState,
   type Player,
   type Move,
@@ -19,6 +20,7 @@ import {
 } from '@/lib/game-logic';
 import { getBestMove, type Difficulty } from '@/lib/ai';
 import { recordGameResult } from '@/lib/storage';
+import { type GameExtras } from '@/lib/challenges';
 import type { GameMode } from './ModeSelector';
 import { ArrowLeft, Copy, Check as CheckIcon } from 'lucide-react';
 
@@ -50,8 +52,19 @@ export default function GamePage({
   const [onlineStatus, setOnlineStatus] = useState<'connecting' | 'waiting' | 'playing' | 'opponent-disconnected' | 'error'>('connecting');
   const [opponentName, setOpponentName] = useState<string>('');
 
-  // thinking is derived — true whenever it's the AI's turn
-  const thinking = mode === 'ai' && gameState.status === 'playing' && gameState.currentPlayer !== playerColor;
+  // Mines mode state
+  const [mines, setMines] = useState<Set<string>>(new Set());
+  const [triggeredMines, setTriggeredMines] = useState<Set<string>>(new Set());
+
+  // Roulette mode state
+  type RouletteEffect = 'normal' | 'extra_turn' | 'skip';
+  const [rouletteEffect, setRouletteEffect] = useState<RouletteEffect | null>(null);
+  const [rouletteSpinning, setRouletteSpinning] = useState(false);
+  const extraTurnRef = useRef(false);
+
+  // thinking is derived — true whenever it's the AI's turn (for ai/mines/roulette)
+  const isAiMode = mode === 'ai' || mode === 'mines' || mode === 'roulette';
+  const thinking = isAiMode && gameState.status === 'playing' && gameState.currentPlayer !== playerColor;
 
   const gameStartTime = useRef<number>(0);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -74,20 +87,59 @@ export default function GamePage({
   }, []);
 
   // ---- Handlers (declared before effects so effects can reference them) ----
+  const applyMineIfNeeded = (newState: GameState, destKey: string, movedPlayer: Player, minesSet: Set<string>): GameState => {
+    if (!minesSet.has(destKey)) return newState;
+    const [r, c] = destKey.split(',').map(Number);
+    const newBoard = newState.board.map(row => [...row]);
+    newBoard[r][c] = null;
+    const newCaptured = { ...newState.captured };
+    if (movedPlayer === 'red') newCaptured.red++;
+    else newCaptured.black++;
+    const nextPlayer = newState.currentPlayer;
+    const newStatus = checkWinCondition(newBoard, movedPlayer);
+    const newValidMoves = newStatus === 'playing' ? getAllValidMoves(newBoard, nextPlayer) : [];
+    return { ...newState, board: newBoard, captured: newCaptured, status: newStatus, validMoves: newValidMoves };
+  };
+
   const handleMove = (move: Move) => {
     if (!isLegalMove(gameStateRef.current, move)) return;
 
     if (mode === 'online' && socketRef.current) {
       socketRef.current.emit('make-move', { roomCode, move });
     }
-    setGameState(prev => applyMoveToState(prev, move));
+
+    const movedPlayer = gameStateRef.current.currentPlayer;
+    let newState = applyMoveToState(gameStateRef.current, move);
+
+    // Mines: check if destination has a mine
+    if (mode === 'mines' && mines.size > 0) {
+      const destKey = `${move.to[0]},${move.to[1]}`;
+      if (mines.has(destKey)) {
+        newState = applyMineIfNeeded(newState, destKey, movedPlayer, mines);
+        setTriggeredMines(prev => new Set([...prev, destKey]));
+      }
+    }
+
+    // Roulette: handle extra_turn
+    if (mode === 'roulette' && rouletteEffect === 'extra_turn' && newState.status === 'playing') {
+      extraTurnRef.current = true;
+      const currPlayer = movedPlayer;
+      newState = {
+        ...newState,
+        currentPlayer: currPlayer,
+        validMoves: getAllValidMoves(newState.board, currPlayer),
+      };
+      setRouletteEffect(null);
+    }
+
+    setGameState(newState);
   };
 
   const handleCellClick = (row: number, col: number) => {
     const state = gameStateRef.current;
     if (state.status !== 'playing') return;
     if (mode === 'online' && state.currentPlayer !== playerColor) return;
-    if (mode === 'ai' && state.currentPlayer !== playerColor) return;
+    if ((mode === 'ai' || mode === 'mines' || mode === 'roulette') && state.currentPlayer !== playerColor) return;
 
     const clickedPiece = state.board[row][col];
 
@@ -121,12 +173,32 @@ export default function GamePage({
     }
   };
 
+  const generateMines = (): Set<string> => {
+    const mineSet = new Set<string>();
+    const candidates: string[] = [];
+    for (let r = 2; r <= 5; r++)
+      for (let c = 0; c < 8; c++)
+        if ((r + c) % 2 === 1) candidates.push(`${r},${c}`);
+    for (let i = candidates.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [candidates[i], candidates[j]] = [candidates[j], candidates[i]];
+    }
+    candidates.slice(0, 6).forEach(m => mineSet.add(m));
+    return mineSet;
+  };
+
   const handleRestart = () => {
     if (mode === 'online') return; // restart not synchronized in online mode
     if (timerRef.current) clearInterval(timerRef.current);
     setGameState(createInitialGameState());
     setShowWin(false);
     gameStartTime.current = Date.now();
+    if (mode === 'mines') {
+      setMines(generateMines());
+      setTriggeredMines(new Set());
+    }
+    setRouletteEffect(null);
+    extraTurnRef.current = false;
   };
 
   const handleResign = () => {
@@ -147,7 +219,7 @@ export default function GamePage({
     const shouldRun =
       gameState.status === 'playing' &&
       (mode === 'local' ||
-        (mode === 'ai' && gameState.currentPlayer === playerColor) ||
+        ((mode === 'ai' || mode === 'mines' || mode === 'roulette') && gameState.currentPlayer === playerColor) ||
         (mode === 'online' && onlineStatus === 'playing' && gameState.currentPlayer === playerColor));
 
     if (!shouldRun) {
@@ -183,7 +255,7 @@ export default function GamePage({
 
   // ---- AI move ----
   useEffect(() => {
-    if (mode !== 'ai') return;
+    if (mode !== 'ai' && mode !== 'mines' && mode !== 'roulette') return;
     if (gameState.status !== 'playing') return;
     if (gameState.currentPlayer === playerColor) return;
 
@@ -192,7 +264,19 @@ export default function GamePage({
     const timer = setTimeout(() => {
       const best = getBestMove(gameState.board, aiPlayer, difficulty);
       if (best) {
-        setGameState(prev => applyMoveToState(prev, best));
+        const movedPlayer = gameStateRef.current.currentPlayer;
+        let newState = applyMoveToState(gameStateRef.current, best);
+
+        // Apply mine if AI lands on one
+        if (mode === 'mines' && mines.size > 0) {
+          const destKey = `${best.to[0]},${best.to[1]}`;
+          if (mines.has(destKey)) {
+            newState = applyMineIfNeeded(newState, destKey, movedPlayer, mines);
+            setTriggeredMines(prev => new Set([...prev, destKey]));
+          }
+        }
+
+        setGameState(newState);
       }
     }, 500 + Math.random() * 400);
 
@@ -213,8 +297,26 @@ export default function GamePage({
       } else if (gameState.status === 'black_wins') {
         result = color === 'black' ? 'win' : 'loss';
       }
-      const opp = mode === 'ai' ? `AI (${difficulty})` : opponentNameRef.current || 'Player 2';
-      recordGameResult(result, mode, opp, gameState.moveHistory.length, duration);
+
+      const opp = (mode === 'ai' || mode === 'mines' || mode === 'roulette')
+        ? `AI (${difficulty})`
+        : opponentNameRef.current || 'Player 2';
+
+      const myCaptures = color === 'red' ? gameState.captured.black : gameState.captured.red;
+      const myLost = color === 'red' ? gameState.captured.red : gameState.captured.black;
+      const myKings = gameState.board.flat().filter(p => p?.player === color && p?.type === 'king').length;
+
+      const extras: GameExtras = {
+        result,
+        mode,
+        aiDifficulty: (mode === 'ai' || mode === 'mines' || mode === 'roulette') ? difficulty : undefined,
+        moves: gameState.moveHistory.length,
+        playerCaptures: myCaptures,
+        piecesLost: myLost,
+        kingsOnBoard: myKings,
+      };
+
+      recordGameResult(result, mode, opp, gameState.moveHistory.length, duration, extras);
 
       const notes = analyzeGame(gameState.moveHistory);
       const t = setTimeout(() => {
@@ -298,6 +400,47 @@ export default function GamePage({
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [mode, roomCode]);
 
+  // ---- Mines initialization ----
+  useEffect(() => {
+    if (mode !== 'mines') return;
+    setMines(generateMines());
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [mode]);
+
+  // ---- Roulette spin ----
+  useEffect(() => {
+    if (mode !== 'roulette') return;
+    if (gameState.status !== 'playing') return;
+    if (gameState.currentPlayer !== playerColor) return; // only spin for human
+    if (extraTurnRef.current) {
+      extraTurnRef.current = false;
+      return; // don't spin again for the extra turn
+    }
+
+    setRouletteSpinning(true);
+    const rand = Math.random();
+    const effect: RouletteEffect = rand < 0.5 ? 'normal' : rand < 0.75 ? 'extra_turn' : 'skip';
+
+    const timer = setTimeout(() => {
+      setRouletteEffect(effect);
+      setRouletteSpinning(false);
+
+      if (effect === 'skip') {
+        setGameState(prev => {
+          const nextPlayer = prev.currentPlayer === 'red' ? 'black' : 'red';
+          return {
+            ...prev,
+            currentPlayer: nextPlayer,
+            validMoves: getAllValidMoves(prev.board, nextPlayer),
+          };
+        });
+      }
+    }, 1200);
+
+    return () => clearTimeout(timer);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [gameState.currentPlayer, gameState.status, mode]);
+
   const copyRoomCode = () => {
     if (roomCode) {
       navigator.clipboard.writeText(roomCode);
@@ -308,7 +451,7 @@ export default function GamePage({
 
   const isPlayerTurn =
     mode === 'local' ||
-    (mode === 'ai' && gameState.currentPlayer === playerColor) ||
+    ((mode === 'ai' || mode === 'mines' || mode === 'roulette') && gameState.currentPlayer === playerColor && !rouletteSpinning) ||
     (mode === 'online' && onlineStatus === 'playing' && gameState.currentPlayer === playerColor);
   const flipBoard = mode === 'local' ? gameState.currentPlayer === 'red' : playerColor === 'red';
 
@@ -356,14 +499,62 @@ export default function GamePage({
           <GameControls
             gameState={gameState}
             mode={mode}
-            aiDifficulty={mode === 'ai' ? difficulty : undefined}
+            aiDifficulty={(mode === 'ai' || mode === 'mines' || mode === 'roulette') ? difficulty : undefined}
             onRestart={handleRestart}
             onResign={handleResign}
             playerColor={mode !== 'local' ? playerColor : undefined}
             turnTimer={turnTimer}
-            opponentName={mode === 'ai' ? `AI (${difficulty})` : opponentName}
+            opponentName={(mode === 'ai' || mode === 'mines' || mode === 'roulette') ? `AI (${difficulty})` : opponentName}
             thinking={thinking}
           />
+
+          {/* Roulette widget */}
+          {mode === 'roulette' && (
+            <div className="bg-white/5 rounded-2xl p-4 border border-white/10">
+              <div className="text-xs text-gray-400 mb-2 uppercase tracking-wider">Roulette</div>
+              {rouletteSpinning ? (
+                <motion.div
+                  animate={{ rotate: 360 }}
+                  transition={{ repeat: Infinity, duration: 0.4, ease: 'linear' }}
+                  className="text-3xl text-center"
+                >
+                  🎡
+                </motion.div>
+              ) : rouletteEffect ? (
+                <div className="text-center">
+                  <div className="text-2xl mb-1">
+                    {rouletteEffect === 'normal' ? '🎲' : rouletteEffect === 'extra_turn' ? '🚀' : '💀'}
+                  </div>
+                  <div className={`text-xs font-semibold ${
+                    rouletteEffect === 'extra_turn' ? 'text-green-400' :
+                    rouletteEffect === 'skip' ? 'text-red-400' :
+                    'text-gray-300'
+                  }`}>
+                    {rouletteEffect === 'normal' ? 'Normal turn' :
+                     rouletteEffect === 'extra_turn' ? 'Extra turn!' :
+                     'Skip! Turn lost'}
+                  </div>
+                </div>
+              ) : (
+                <div className="text-gray-500 text-xs text-center">Waiting...</div>
+              )}
+            </div>
+          )}
+
+          {/* Mines info widget */}
+          {mode === 'mines' && (
+            <div className="bg-white/5 rounded-2xl p-4 border border-white/10">
+              <div className="text-xs text-gray-400 mb-1 uppercase tracking-wider">Mines Mode</div>
+              <div className="text-xs text-orange-400">
+                💣 {mines.size - triggeredMines.size} mines hidden
+              </div>
+              {triggeredMines.size > 0 && (
+                <div className="text-xs text-red-400 mt-1">
+                  💥 {triggeredMines.size} triggered
+                </div>
+              )}
+            </div>
+          )}
         </div>
 
         {/* Main board area */}
@@ -373,7 +564,7 @@ export default function GamePage({
             <div className="flex items-center gap-3">
               <div className="w-5 h-5 rounded-full bg-gradient-to-br from-gray-600 to-gray-900 border border-gray-400" />
               <span className="text-gray-300 text-sm">
-                {mode === 'ai' && playerColor === 'black' ? username :
+                {(mode === 'ai' || mode === 'mines' || mode === 'roulette') && playerColor === 'black' ? username :
                  mode === 'online' && playerColor === 'black' ? username :
                  mode === 'local' ? 'Black' :
                  opponentName || `AI (${difficulty})`}
@@ -391,13 +582,15 @@ export default function GamePage({
               gameState={gameState}
               onCellClick={handleCellClick}
               flipped={flipBoard}
-              disabled={!isPlayerTurn || thinking || gameState.status !== 'playing'}
+              disabled={!isPlayerTurn || thinking || gameState.status !== 'playing' || rouletteSpinning}
+              triggeredMines={triggeredMines}
+              showAllMines={gameState.status !== 'playing' ? mines : undefined}
             />
 
             <div className="flex items-center gap-3">
               <div className="w-5 h-5 rounded-full bg-gradient-to-br from-red-400 to-red-700 border border-red-300" />
               <span className="text-gray-300 text-sm">
-                {mode === 'ai' && playerColor === 'red' ? username :
+                {(mode === 'ai' || mode === 'mines' || mode === 'roulette') && playerColor === 'red' ? username :
                  mode === 'online' && playerColor === 'red' ? username :
                  mode === 'local' ? 'Red' :
                  opponentName || `AI (${difficulty})`}

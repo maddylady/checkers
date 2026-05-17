@@ -1,5 +1,7 @@
 import type { GameRecord, PlayerStats } from './game-logic';
 import { syncPlayerStats, addGameRecord } from './supabase';
+import type { GameExtras } from './challenges';
+import { checkAndUpdateChallenges } from './challenges';
 
 const STORAGE_KEYS = {
   USERNAME: 'checkmate_arena_username',
@@ -9,6 +11,8 @@ const STORAGE_KEYS = {
   LEADERBOARD: 'checkmate_arena_leaderboard',
   THEME: 'checkmate_arena_theme',
   PRO: 'checkmate_arena_pro',
+  COINS: 'checkmate_arena_coins',
+  STREAK: 'checkmate_arena_streak',
 };
 
 export function getUsername(): string {
@@ -64,12 +68,66 @@ export function saveStats(stats: PlayerStats): void {
   saveLeaderboard(lb);
 }
 
+export function getCoins(): number {
+  if (typeof window === 'undefined') return 0;
+  return parseInt(localStorage.getItem(STORAGE_KEYS.COINS) || '0', 10);
+}
+
+export function addCoins(amount: number): number {
+  if (typeof window === 'undefined') return 0;
+  const current = getCoins();
+  const newTotal = current + amount;
+  localStorage.setItem(STORAGE_KEYS.COINS, String(newTotal));
+  return newTotal;
+}
+
+export interface StreakData {
+  count: number;
+  lastDate: string;
+}
+
+export function getStreak(): StreakData {
+  if (typeof window === 'undefined') return { count: 0, lastDate: '' };
+  const raw = localStorage.getItem(STORAGE_KEYS.STREAK);
+  if (!raw) return { count: 0, lastDate: '' };
+  return JSON.parse(raw);
+}
+
+export function updateStreak(): number {
+  if (typeof window === 'undefined') return 0;
+  const today = new Date().toISOString().slice(0, 10);
+  const streak = getStreak();
+
+  if (streak.lastDate === today) {
+    return streak.count;
+  }
+
+  let newCount: number;
+  if (streak.lastDate) {
+    const yesterday = new Date();
+    yesterday.setDate(yesterday.getDate() - 1);
+    const yesterdayStr = yesterday.toISOString().slice(0, 10);
+    if (streak.lastDate === yesterdayStr) {
+      newCount = streak.count + 1;
+    } else {
+      newCount = 1;
+    }
+  } else {
+    newCount = 1;
+  }
+
+  const newStreak: StreakData = { count: newCount, lastDate: today };
+  localStorage.setItem(STORAGE_KEYS.STREAK, JSON.stringify(newStreak));
+  return newCount;
+}
+
 export function recordGameResult(
   result: 'win' | 'loss' | 'draw',
-  mode: 'ai' | 'local' | 'online',
+  mode: string,
   opponent: string,
   moves: number,
-  duration: number
+  duration: number,
+  extras?: GameExtras
 ): void {
   const stats = getStats();
   const username = getUsername();
@@ -85,6 +143,15 @@ export function recordGameResult(
   // Sync to Supabase in background — fire and forget
   syncPlayerStats(stats).catch(() => {});
   addGameRecord({ mode, result, opponent, moves, duration }).catch(() => {});
+
+  // Streak & coins
+  updateStreak();
+  const baseCoins = result === 'win' ? 20 : result === 'draw' ? 10 : 5;
+  addCoins(baseCoins);
+  if (extras) {
+    const challengeCoins = checkAndUpdateChallenges(extras);
+    if (challengeCoins > 0) addCoins(challengeCoins);
+  }
 
   // Save to history
   const history = getGameHistory();

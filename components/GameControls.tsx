@@ -7,7 +7,7 @@ import { RotateCcw, Flag, Clock, Zap } from 'lucide-react';
 
 interface GameControlsProps {
   gameState: GameState;
-  mode: 'ai' | 'local' | 'online';
+  mode: string;
   aiDifficulty?: Difficulty;
   onRestart: () => void;
   onResign: () => void;
@@ -58,11 +58,11 @@ export default function GameControls({
             <div className="font-bold text-white capitalize">
               {currentPlayer === playerColor
                 ? 'Your turn'
-                : mode === 'ai' && thinking
+                : (mode === 'ai' || mode === 'mines' || mode === 'roulette') && thinking
                 ? 'AI thinking...'
                 : `${currentPlayer === 'red' ? 'Red' : 'Black'}'s turn`}
             </div>
-            {mode === 'ai' && aiDifficulty && (
+            {(mode === 'ai' || mode === 'mines' || mode === 'roulette') && aiDifficulty && (
               <div className={`text-xs ${difficultyColors[aiDifficulty]} capitalize`}>
                 AI: {aiDifficulty} difficulty
               </div>

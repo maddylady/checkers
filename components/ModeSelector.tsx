@@ -2,10 +2,10 @@
 
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Bot, Users, Globe, ChevronRight, Wifi } from 'lucide-react';
+import { Bot, Users, Globe, ChevronRight, Wifi, Zap, Shuffle } from 'lucide-react';
 import type { Difficulty } from '@/lib/ai';
 
-export type GameMode = 'ai' | 'local' | 'online';
+export type GameMode = 'ai' | 'local' | 'online' | 'mines' | 'roulette';
 
 interface ModeSelectorProps {
   onSelect: (mode: GameMode, difficulty?: Difficulty, roomCode?: string) => void;
@@ -19,6 +19,7 @@ const difficulties: { value: Difficulty; label: string; desc: string; color: str
 
 export default function ModeSelector({ onSelect }: ModeSelectorProps) {
   const [step, setStep] = useState<'mode' | 'difficulty' | 'online'>('mode');
+  const [pendingMode, setPendingMode] = useState<GameMode>('ai');
 
   const [joinCode, setJoinCode] = useState('');
 
@@ -62,6 +63,22 @@ export default function ModeSelector({ onSelect }: ModeSelectorProps) {
       color: 'from-green-600 to-teal-600',
       badge: 'Multiplayer',
     },
+    {
+      mode: 'mines' as GameMode,
+      icon: <Zap size={28} />,
+      title: 'Mines Mode',
+      desc: 'Hidden mines detonate when landed on. Every game is a surprise.',
+      color: 'from-orange-600 to-red-600',
+      badge: 'Chaos',
+    },
+    {
+      mode: 'roulette' as GameMode,
+      icon: <Shuffle size={28} />,
+      title: 'Roulette Mode',
+      desc: 'Spin the wheel each turn. Extra move, skip, or normal?',
+      color: 'from-purple-600 to-pink-600',
+      badge: 'Luck',
+    },
   ];
 
   return (
@@ -86,8 +103,10 @@ export default function ModeSelector({ onSelect }: ModeSelectorProps) {
                 whileHover={{ scale: 1.02, x: 4 }}
                 whileTap={{ scale: 0.98 }}
                 onClick={() => {
-                  if (mode === 'ai') setStep('difficulty');
-                  else if (mode === 'online') setStep('online');
+                  if (mode === 'ai' || mode === 'mines' || mode === 'roulette') {
+                    setPendingMode(mode);
+                    setStep('difficulty');
+                  } else if (mode === 'online') setStep('online');
                   else onSelect('local');
                 }}
                 className="w-full flex items-center gap-4 p-5 rounded-2xl bg-white/5 hover:bg-white/10 border border-white/10 hover:border-white/20 transition-all group text-left"
@@ -126,7 +145,7 @@ export default function ModeSelector({ onSelect }: ModeSelectorProps) {
                 key={value}
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
-                onClick={() => onSelect('ai', value)}
+                onClick={() => onSelect(pendingMode, value)}
                 className="w-full flex items-center gap-4 p-5 rounded-2xl bg-white/5 hover:bg-white/10 border border-white/10 hover:border-white/20 transition-all group text-left"
               >
                 <div className={`px-4 py-2 rounded-xl bg-gradient-to-br ${color} text-white font-bold text-sm flex-shrink-0`}>

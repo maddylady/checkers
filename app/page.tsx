@@ -7,6 +7,7 @@ import ModeSelector, { type GameMode } from '@/components/ModeSelector';
 import GamePage from '@/components/GamePage';
 import Leaderboard from '@/components/Leaderboard';
 import UsernameModal from '@/components/UsernameModal';
+import DailyChallenges from '@/components/DailyChallenges';
 import {
   getUsername,
   getCity,
@@ -16,6 +17,8 @@ import {
   getTheme,
   setTheme,
   seedLeaderboardIfEmpty,
+  getCoins,
+  getStreak,
 } from '@/lib/storage';
 import { fetchLeaderboard, onAuthStateChange, type AuthUser } from '@/lib/supabase';
 import type { Difficulty } from '@/lib/ai';
@@ -39,6 +42,8 @@ export default function HomePage() {
   const [history, setHistory] = useState<GameRecord[]>([]);
   const [statsTab, setStatsTab] = useState<'stats' | 'history'>('stats');
   const [googleUser, setGoogleUser] = useState<AuthUser | null>(null);
+  const [coins, setCoins] = useState(0);
+  const [streak, setStreak] = useState(0);
 
   // Load all localStorage state after hydration to avoid server/client mismatch
   useEffect(() => {
@@ -54,6 +59,8 @@ export default function HomePage() {
       setHistory(getGameHistory());
       seedLeaderboardIfEmpty();
       setLeaderboard(getLeaderboard());
+      setCoins(getCoins());
+      setStreak(getStreak().count);
 
       // Then try to load real leaderboard from Supabase
       fetchLeaderboard().then(data => {
@@ -95,6 +102,7 @@ export default function HomePage() {
     setScreen('home');
     setStats(getStats());
     setHistory(getGameHistory());
+    setCoins(getCoins());
     // Refresh leaderboard from Supabase after game
     fetchLeaderboard().then(data => {
       setLeaderboard(data.length > 0 ? data : getLeaderboard());
@@ -119,6 +127,7 @@ export default function HomePage() {
         username={username}
         onUsernameChange={() => setShowUsernameModal(true)}
         googleUser={googleUser}
+        coins={coins}
       />
 
       <AnimatePresence mode="wait">
@@ -133,14 +142,26 @@ export default function HomePage() {
             {/* Hero section */}
             <div className="max-w-7xl mx-auto px-4 py-12">
               <div className="text-center mb-16">
-                <motion.div
-                  initial={{ y: -20, opacity: 0 }}
-                  animate={{ y: 0, opacity: 1 }}
-                  transition={{ delay: 0.1 }}
-                  className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-amber-500/10 border border-amber-500/20 text-amber-400 text-sm font-medium mb-4"
-                >
-                  Open Beta — v1.0
-                </motion.div>
+                <div className="flex items-center justify-center gap-3 flex-wrap mb-4">
+                  <motion.div
+                    initial={{ y: -20, opacity: 0 }}
+                    animate={{ y: 0, opacity: 1 }}
+                    transition={{ delay: 0.1 }}
+                    className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-amber-500/10 border border-amber-500/20 text-amber-400 text-sm font-medium"
+                  >
+                    Open Beta — v1.0
+                  </motion.div>
+                  {streak > 1 && (
+                    <motion.div
+                      initial={{ y: -20, opacity: 0 }}
+                      animate={{ y: 0, opacity: 1 }}
+                      transition={{ delay: 0.15 }}
+                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-orange-500/10 border border-orange-500/20 text-orange-400 text-sm font-medium"
+                    >
+                      🔥 {streak} day streak
+                    </motion.div>
+                  )}
+                </div>
 
                 {/* Guest nudge banner */}
                 {!googleUser?.isGoogle && (
@@ -345,6 +366,9 @@ export default function HomePage() {
 
                   {/* Leaderboard */}
                   <Leaderboard entries={leaderboard} currentUsername={username} theme={theme} />
+
+                  {/* Daily Challenges */}
+                  <DailyChallenges />
                 </motion.div>
               </div>
 
