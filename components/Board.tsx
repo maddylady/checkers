@@ -1,6 +1,6 @@
 'use client';
 
-import { motion, AnimatePresence, LayoutGroup } from 'framer-motion';
+import { motion } from 'framer-motion';
 import type { GameState } from '@/lib/game-logic';
 import { getMovesForCell } from '@/lib/game-logic';
 import PieceComponent from './Piece';
@@ -33,7 +33,6 @@ export default function Board({ gameState, onCellClick, flipped = false, disable
   const cols = flipped ? [...Array(8).keys()].reverse() : [...Array(8).keys()];
 
   return (
-    <LayoutGroup>
     <div className="relative select-none">
       {/* Board shadow/glow */}
       <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-amber-400/20 to-amber-700/20 blur-xl -z-10 scale-105" />
@@ -159,14 +158,12 @@ export default function Board({ gameState, onCellClick, flipped = false, disable
                   )}
 
                   {/* Piece */}
-                  <AnimatePresence>
-                    {piece && (
-                      <PieceComponent
-                        piece={piece}
-                        isSelected={isSelected}
-                      />
-                    )}
-                  </AnimatePresence>
+                  {piece && (
+                    <PieceComponent
+                      piece={piece}
+                      isSelected={isSelected}
+                    />
+                  )}
                 </div>
               );
             })
@@ -174,6 +171,5 @@ export default function Board({ gameState, onCellClick, flipped = false, disable
         </div>
       </div>
     </div>
-    </LayoutGroup>
   );
 }

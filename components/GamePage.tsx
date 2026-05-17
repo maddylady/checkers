@@ -723,24 +723,21 @@ export default function GamePage({
               )}
             </div>
 
-            <AnimatePresence mode="wait" initial={false}>
-              <motion.div
-                key={replayIndex !== null ? 'replay' : 'live'}
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                transition={{ duration: 0.12 }}
-              >
-                <Board
-                  gameState={displayGameState}
-                  onCellClick={handleCellClick}
-                  flipped={flipBoard}
-                  disabled={!isPlayerTurn || thinking || gameState.status !== 'playing' || rouletteSpinning || replayIndex !== null}
-                  triggeredMines={triggeredMines}
-                  showAllMines={gameState.status !== 'playing' ? mines : undefined}
-                />
-              </motion.div>
-            </AnimatePresence>
+            <motion.div
+              key={replayIndex ?? 'live'}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ duration: 0.1 }}
+            >
+              <Board
+                gameState={displayGameState}
+                onCellClick={handleCellClick}
+                flipped={flipBoard}
+                disabled={!isPlayerTurn || thinking || gameState.status !== 'playing' || rouletteSpinning || replayIndex !== null}
+                triggeredMines={triggeredMines}
+                showAllMines={gameState.status !== 'playing' ? mines : undefined}
+              />
+            </motion.div>
 
             <div className="flex items-center gap-3">
               <div className="w-5 h-5 rounded-full bg-gradient-to-br from-red-400 to-red-700 border border-red-300" />
