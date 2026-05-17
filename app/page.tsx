@@ -42,7 +42,7 @@ export default function HomePage() {
   const [leaderboard, setLeaderboard] = useState<PlayerStats[]>([]);
   const [stats, setStats] = useState<PlayerStats | null>(null);
   const [history, setHistory] = useState<GameRecord[]>([]);
-  const [statsTab, setStatsTab] = useState<'stats' | 'history'>('stats');
+  const [sidebarTab, setSidebarTab] = useState<'leaderboard' | 'stats' | 'challenges'>('leaderboard');
   const [googleUser, setGoogleUser] = useState<AuthUser | null>(null);
   const [coins, setCoins] = useState(0);
   const [showShop, setShowShop] = useState(false);
@@ -143,226 +143,183 @@ export default function HomePage() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="pt-20"
+            className="pt-16 min-h-screen"
           >
-            {/* Hero section */}
-            <div className="max-w-7xl mx-auto px-4 py-12">
-              <div className="text-center mb-16">
-                <div className="flex items-center justify-center gap-3 flex-wrap mb-4">
-                  <motion.div
-                    initial={{ y: -20, opacity: 0 }}
-                    animate={{ y: 0, opacity: 1 }}
-                    transition={{ delay: 0.1 }}
-                    className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-amber-500/10 border border-amber-500/20 text-amber-400 text-sm font-medium"
-                  >
-                    Open Beta — v1.0
-                  </motion.div>
+            <div className="max-w-6xl mx-auto px-4 py-5">
+
+              {/* Compact header row */}
+              <motion.div
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.1 }}
+                className="flex items-center justify-between mb-5 flex-wrap gap-3"
+              >
+                <div>
+                  <h1 className={`text-2xl font-black ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
+                    CheckMate{' '}
+                    <span className="bg-gradient-to-r from-amber-400 to-red-500 bg-clip-text text-transparent">Arena</span>
+                  </h1>
+                  <p className="text-gray-500 text-sm">Real-time competitive checkers</p>
+                </div>
+                <div className="flex items-center gap-2 flex-wrap">
+                  <span className="text-xs px-3 py-1.5 rounded-full bg-amber-500/10 border border-amber-500/20 text-amber-400">
+                    Open Beta v1.0
+                  </span>
                   {streak > 1 && (
-                    <motion.div
-                      initial={{ y: -20, opacity: 0 }}
-                      animate={{ y: 0, opacity: 1 }}
-                      transition={{ delay: 0.15 }}
-                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-orange-500/10 border border-orange-500/20 text-orange-400 text-sm font-medium"
-                    >
+                    <span className="text-xs px-3 py-1.5 rounded-full bg-orange-500/10 border border-orange-500/20 text-orange-400">
                       🔥 {streak} day streak
-                    </motion.div>
+                    </span>
+                  )}
+                  {!googleUser?.isGoogle && (
+                    <button
+                      onClick={() => import('@/lib/supabase').then(m => m.signInWithGoogle())}
+                      className="text-xs px-3 py-1.5 rounded-full bg-blue-500/10 border border-blue-500/20 text-blue-400 hover:bg-blue-500/20 transition-colors"
+                    >
+                      Sign in to sync ↗
+                    </button>
                   )}
                 </div>
+              </motion.div>
 
-                {/* Guest nudge banner */}
-                {!googleUser?.isGoogle && (
-                  <motion.div
-                    initial={{ opacity: 0, y: -10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.15 }}
-                    className="flex items-center justify-center gap-3 mb-6"
-                  >
-                    <div className={`flex items-center gap-2 px-4 py-2 rounded-full text-sm border ${
-                      theme === 'dark'
-                        ? 'bg-white/5 border-white/10 text-gray-400'
-                        : 'bg-white border-gray-200 text-gray-500 shadow-sm'
-                    }`}>
-                      <span>🎮 Playing as guest</span>
-                      <span className="text-gray-600">·</span>
-                      <button
-                        onClick={() => {
-                          import('@/lib/supabase').then(m => m.signInWithGoogle());
-                        }}
-                        className="flex items-center gap-1.5 text-blue-400 hover:text-blue-300 font-medium transition-colors"
-                      >
-                        <svg width="12" height="12" viewBox="0 0 24 24">
-                          <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
-                          <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
-                          <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z"/>
-                          <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
-                        </svg>
-                        Sign in with Google to save progress on all devices
-                      </button>
-                    </div>
-                  </motion.div>
-                )}
+              {/* Main two-column grid */}
+              <div className="grid lg:grid-cols-5 gap-5 items-start">
 
-                <motion.h1
-                  initial={{ y: 20, opacity: 0 }}
-                  animate={{ y: 0, opacity: 1 }}
-                  transition={{ delay: 0.2 }}
-                  className={`text-5xl md:text-7xl font-black mb-6 ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}
-                >
-                  CheckMate{' '}
-                  <span className="bg-gradient-to-r from-amber-400 to-red-500 bg-clip-text text-transparent">
-                    Arena
-                  </span>
-                </motion.h1>
-
-                <motion.p
-                  initial={{ y: 20, opacity: 0 }}
-                  animate={{ y: 0, opacity: 1 }}
-                  transition={{ delay: 0.3 }}
-                  className={`text-xl max-w-2xl mx-auto ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}
-                >
-                  The ultimate checkers experience. Challenge AI, play friends online, and master
-                  the board with post-game coaching.
-                </motion.p>
-
-              </div>
-
-              {/* Main content grid */}
-              <div className="grid lg:grid-cols-3 gap-8">
-                {/* Mode selector - takes 2 cols */}
+                {/* Left — Mode Selector */}
                 <motion.div
-                  initial={{ opacity: 0, x: -20 }}
+                  initial={{ opacity: 0, x: -16 }}
                   animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: 0.4 }}
-                  className="lg:col-span-2"
+                  transition={{ delay: 0.2 }}
+                  className="lg:col-span-3"
                 >
-                  <div className={`rounded-3xl p-8 border ${
-                    theme === 'dark'
-                      ? 'bg-white/5 border-white/10'
-                      : 'bg-white border-gray-200 shadow-lg'
+                  <div className={`rounded-3xl p-6 border ${
+                    theme === 'dark' ? 'bg-white/5 border-white/10' : 'bg-white border-gray-200 shadow-lg'
                   }`}>
                     <ModeSelector onSelect={handleModeSelect} />
                   </div>
                 </motion.div>
 
-                {/* Right sidebar */}
+                {/* Right — Tabbed sidebar */}
                 <motion.div
-                  initial={{ opacity: 0, x: 20 }}
+                  initial={{ opacity: 0, x: 16 }}
                   animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: 0.5 }}
-                  className="flex flex-col gap-6"
+                  transition={{ delay: 0.3 }}
+                  className="lg:col-span-2 flex flex-col gap-3"
                 >
-                  {/* Personal stats + history */}
-                  {username && stats && (
-                    <div className={`rounded-2xl border ${
-                      theme === 'dark'
-                        ? 'bg-white/5 border-white/10'
-                        : 'bg-white border-gray-200 shadow-md'
-                    }`}>
-                      {/* Tab bar */}
-                      <div className={`flex border-b ${theme === 'dark' ? 'border-white/10' : 'border-gray-100'}`}>
-                        {(['stats', 'history'] as const).map(tab => (
-                          <button
-                            key={tab}
-                            onClick={() => setStatsTab(tab)}
-                            className={`flex-1 py-3 text-xs font-semibold uppercase tracking-wider transition-colors rounded-t-2xl ${
-                              statsTab === tab
-                                ? theme === 'dark'
-                                  ? 'text-amber-400 border-b-2 border-amber-400 -mb-px'
-                                  : 'text-amber-600 border-b-2 border-amber-500 -mb-px'
-                                : theme === 'dark'
-                                  ? 'text-gray-500 hover:text-gray-300'
-                                  : 'text-gray-400 hover:text-gray-600'
-                            }`}
-                          >
-                            {tab}
-                          </button>
-                        ))}
-                      </div>
+                  {/* Tab switcher */}
+                  <div className={`flex p-1 rounded-2xl border ${
+                    theme === 'dark' ? 'bg-white/5 border-white/10' : 'bg-gray-100 border-gray-200'
+                  }`}>
+                    {([
+                      { id: 'leaderboard', label: '🏆 Top' },
+                      { id: 'stats',       label: '📊 Stats' },
+                      { id: 'challenges',  label: '🎯 Daily' },
+                    ] as const).map(tab => (
+                      <button
+                        key={tab.id}
+                        onClick={() => setSidebarTab(tab.id)}
+                        className={`flex-1 py-2 text-xs font-semibold rounded-xl transition-all ${
+                          sidebarTab === tab.id
+                            ? theme === 'dark'
+                              ? 'bg-white/15 text-white shadow-sm'
+                              : 'bg-white text-gray-900 shadow-sm'
+                            : theme === 'dark'
+                              ? 'text-gray-500 hover:text-gray-300'
+                              : 'text-gray-400 hover:text-gray-600'
+                        }`}
+                      >
+                        {tab.label}
+                      </button>
+                    ))}
+                  </div>
 
-                      <div className="p-5">
-                        {statsTab === 'stats' ? (
-                          <>
-                            <div className="flex items-center gap-3 mb-4">
-                              <div className="w-10 h-10 rounded-full bg-gradient-to-br from-amber-400 to-red-500 flex items-center justify-center text-white font-bold text-lg">
-                                {username[0]?.toUpperCase()}
-                              </div>
-                              <div>
-                                <div className={`font-bold ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>{username}</div>
-                                <div className="text-xs text-gray-400">{stats.gamesPlayed} games played</div>
-                              </div>
-                            </div>
-                            <div className="grid grid-cols-3 gap-3">
-                              {[
-                                { label: 'Wins', value: stats.wins, color: 'text-green-400' },
-                                { label: 'Losses', value: stats.losses, color: 'text-red-400' },
-                                { label: 'Draws', value: stats.draws, color: 'text-blue-400' },
-                              ].map(s => (
-                                <div key={s.label} className={`text-center p-2 rounded-xl ${
-                                  theme === 'dark' ? 'bg-white/5' : 'bg-gray-50'
-                                }`}>
-                                  <div className={`text-xl font-bold ${s.color}`}>{s.value}</div>
-                                  <div className="text-xs text-gray-400">{s.label}</div>
+                  {/* Tab content */}
+                  <AnimatePresence mode="wait">
+                    {sidebarTab === 'leaderboard' && (
+                      <motion.div key="lb" initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}>
+                        <Leaderboard entries={leaderboard} currentUsername={username} theme={theme} />
+                      </motion.div>
+                    )}
+
+                    {sidebarTab === 'stats' && (
+                      <motion.div key="stats" initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}>
+                        <div className={`rounded-2xl border p-4 ${
+                          theme === 'dark' ? 'bg-white/5 border-white/10' : 'bg-white border-gray-200 shadow-md'
+                        }`}>
+                          {username && stats ? (
+                            <>
+                              {/* Player row */}
+                              <div className="flex items-center gap-3 mb-4">
+                                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-amber-400 to-red-500 flex items-center justify-center text-white font-bold text-lg flex-shrink-0">
+                                  {username[0]?.toUpperCase()}
                                 </div>
-                              ))}
-                            </div>
-                          </>
-                        ) : (
-                          <div className="space-y-2 max-h-64 overflow-y-auto pr-1">
-                            {history.length === 0 ? (
-                              <div className="text-center py-6 text-gray-500 text-sm">No games yet</div>
-                            ) : (
-                              history.slice(0, 20).map(g => {
-                                const mins = Math.floor(g.duration / 60);
-                                const secs = g.duration % 60;
-                                const durStr = mins > 0
-                                  ? `${mins}m ${secs}s`
-                                  : `${secs}s`;
-                                const modeIcon = g.mode === 'ai' ? '🤖' : g.mode === 'online' ? '🌐' : '👥';
-                                const resultColor = g.result === 'win'
-                                  ? 'text-green-400 bg-green-400/10'
-                                  : g.result === 'loss'
-                                  ? 'text-red-400 bg-red-400/10'
-                                  : 'text-blue-400 bg-blue-400/10';
-                                const dateStr = new Date(g.date).toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
-                                return (
-                                  <div
-                                    key={g.id}
-                                    className={`flex items-center gap-2 px-3 py-2 rounded-xl ${
-                                      theme === 'dark' ? 'bg-white/5' : 'bg-gray-50'
-                                    }`}
-                                  >
-                                    <span className={`text-xs font-bold px-2 py-0.5 rounded-lg uppercase ${resultColor}`}>
-                                      {g.result[0]}
-                                    </span>
-                                    <span className="text-sm">{modeIcon}</span>
-                                    <span className={`flex-1 text-xs truncate ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
-                                      vs {g.opponent}
-                                    </span>
-                                    <span className="text-xs text-gray-500">{durStr}</span>
-                                    <span className="text-xs text-gray-600">{dateStr}</span>
+                                <div className="min-w-0">
+                                  <div className={`font-bold truncate ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>{username}</div>
+                                  <div className="text-xs text-gray-400">{stats.gamesPlayed} games · {stats.gamesPlayed > 0 ? Math.round(stats.wins / stats.gamesPlayed * 100) : 0}% win rate</div>
+                                </div>
+                              </div>
+
+                              {/* W / L / D */}
+                              <div className="grid grid-cols-3 gap-2 mb-4">
+                                {[
+                                  { label: 'Wins',   value: stats.wins,   color: 'text-green-400' },
+                                  { label: 'Losses', value: stats.losses, color: 'text-red-400'   },
+                                  { label: 'Draws',  value: stats.draws,  color: 'text-blue-400'  },
+                                ].map(s => (
+                                  <div key={s.label} className={`text-center p-2.5 rounded-xl ${theme === 'dark' ? 'bg-white/5' : 'bg-gray-50'}`}>
+                                    <div className={`text-2xl font-bold ${s.color}`}>{s.value}</div>
+                                    <div className="text-xs text-gray-400">{s.label}</div>
                                   </div>
-                                );
-                              })
-                            )}
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  )}
+                                ))}
+                              </div>
 
-                  {/* Leaderboard */}
-                  <Leaderboard entries={leaderboard} currentUsername={username} theme={theme} />
+                              {/* Recent games */}
+                              {history.length > 0 && (
+                                <>
+                                  <div className="text-xs text-gray-500 font-semibold uppercase tracking-wider mb-2">Recent</div>
+                                  <div className="space-y-1.5">
+                                    {history.slice(0, 6).map(g => {
+                                      const modeIcon = g.mode === 'ai' ? '🤖' : g.mode === 'online' ? '🌐' : g.mode === 'mines' ? '💣' : g.mode === 'roulette' ? '🎰' : '👥';
+                                      const rc = g.result === 'win' ? 'text-green-400 bg-green-400/10' : g.result === 'loss' ? 'text-red-400 bg-red-400/10' : 'text-blue-400 bg-blue-400/10';
+                                      const dateStr = new Date(g.date).toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+                                      return (
+                                        <div key={g.id} className={`flex items-center gap-2 px-2.5 py-1.5 rounded-xl ${theme === 'dark' ? 'bg-white/5' : 'bg-gray-50'}`}>
+                                          <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-lg uppercase ${rc}`}>{g.result[0]}</span>
+                                          <span className="text-xs">{modeIcon}</span>
+                                          <span className={`flex-1 text-xs truncate ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>vs {g.opponent}</span>
+                                          <span className="text-xs text-gray-500 flex-shrink-0">{dateStr}</span>
+                                        </div>
+                                      );
+                                    })}
+                                  </div>
+                                </>
+                              )}
+                            </>
+                          ) : (
+                            <div className="text-center py-10">
+                              <div className="text-4xl mb-3">🎮</div>
+                              <div className={`font-semibold mb-1 ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
+                                {username ? 'No games yet' : 'Set your username first'}
+                              </div>
+                              <div className="text-sm text-gray-500">Play a game to see your stats here</div>
+                            </div>
+                          )}
+                        </div>
+                      </motion.div>
+                    )}
 
-                  {/* Daily Challenges */}
-                  <DailyChallenges />
+                    {sidebarTab === 'challenges' && (
+                      <motion.div key="challenges" initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}>
+                        <DailyChallenges />
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
                 </motion.div>
               </div>
 
             </div>
 
-            {/* Footer */}
-            <div className="text-center py-8 text-gray-600 text-sm">
-              <p>CheckMate Arena © 2024 — Built with Next.js, Socket.io, and Framer Motion</p>
+            <div className="text-center py-6 text-gray-600 text-sm">
+              CheckMate Arena © 2025 — Next.js · Socket.io · Framer Motion
             </div>
           </motion.div>
         )}
