@@ -2,7 +2,7 @@
 import SkinShop from '@/components/SkinShop';
 import BadgeUnlockModal from '@/components/BadgeUnlockModal';
 import ProfileModal from '@/components/ProfileModal';
-import { BADGES, type Badge } from '@/lib/badges';
+import { type Badge } from '@/lib/badges';
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Navbar from '@/components/Navbar';

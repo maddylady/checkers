@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react'; // useEffect kept for keyboard listener
 import { motion } from 'framer-motion';
 import { SKIN_PACKS, getOwnedSkins, getActiveSkin, setActiveSkin, purchaseSkin } from '@/lib/skins';
 import { getCoins } from '@/lib/storage';
@@ -12,17 +12,10 @@ interface Props {
 }
 
 export default function SkinShop({ onClose, onCoinsChange }: Props) {
-    const [owned, setOwned] = useState<string[]>([]);
-    const [active, setActive] = useState<string>('classic');
-    const [coins, setCoins] = useState(0);
-    const [streak, setStreakState] = useState(0);
-
-    useEffect(() => {
-        setOwned(getOwnedSkins());
-        setActive(getActiveSkin());
-        setCoins(getCoins());
-        setStreakState(getStreak().count);
-    }, []);
+    const [owned, setOwned] = useState<string[]>(() => getOwnedSkins());
+    const [active, setActive] = useState<string>(() => getActiveSkin());
+    const [coins, setCoins] = useState(() => getCoins());
+    const [streak] = useState(() => getStreak().count);
 
     useEffect(() => {
         const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); };

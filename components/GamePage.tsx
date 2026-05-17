@@ -29,6 +29,21 @@ import { ArrowLeft, Copy, Check as CheckIcon } from 'lucide-react';
 
 type SocketType = ReturnType<typeof import('socket.io-client').io>;
 
+// Module-level so it can be called in useState lazy init
+function generateMines(): Set<string> {
+  const mineSet = new Set<string>();
+  const candidates: string[] = [];
+  for (let r = 2; r <= 5; r++)
+    for (let c = 0; c < 8; c++)
+      if ((r + c) % 2 === 1) candidates.push(`${r},${c}`);
+  for (let i = candidates.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [candidates[i], candidates[j]] = [candidates[j], candidates[i]];
+  }
+  candidates.slice(0, 6).forEach(m => mineSet.add(m));
+  return mineSet;
+}
+
 interface GamePageProps {
   mode: GameMode;
   difficulty?: Difficulty;
@@ -68,8 +83,8 @@ export default function GamePage({
   const [onlineStatus, setOnlineStatus] = useState<'connecting' | 'waiting' | 'playing' | 'opponent-disconnected' | 'error'>('connecting');
   const [opponentName, setOpponentName] = useState<string>('');
 
-  // Mines mode state
-  const [mines, setMines] = useState<Set<string>>(new Set());
+  // Mines mode state — lazy init so no effect needed for initialization
+  const [mines, setMines] = useState<Set<string>>(() => mode === 'mines' ? generateMines() : new Set());
   const [triggeredMines, setTriggeredMines] = useState<Set<string>>(new Set());
 
   // Roulette mode state
@@ -91,9 +106,9 @@ export default function GamePage({
   const opponentNameRef = useRef<string>(opponentName);
   const socketRef = useRef<SocketType | null>(null);
 
-  // Move replay
+  // Move replay — boardHistory in state so it's safe to read during render
   const [replayIndex, setReplayIndex] = useState<number | null>(null);
-  const boardHistoryRef = useRef<BoardGrid[]>([]);
+  const [boardHistory, setBoardHistory] = useState<BoardGrid[]>([]);
   const boardWrapperRef = useRef<HTMLDivElement>(null);
   const replayAnimRef = useRef<Animation | null>(null);
   const skipFirstReplayAnim = useRef(true);
@@ -197,20 +212,6 @@ export default function GamePage({
     }
   };
 
-  const generateMines = (): Set<string> => {
-    const mineSet = new Set<string>();
-    const candidates: string[] = [];
-    for (let r = 2; r <= 5; r++)
-      for (let c = 0; c < 8; c++)
-        if ((r + c) % 2 === 1) candidates.push(`${r},${c}`);
-    for (let i = candidates.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      [candidates[i], candidates[j]] = [candidates[j], candidates[i]];
-    }
-    candidates.slice(0, 6).forEach(m => mineSet.add(m));
-    return mineSet;
-  };
-
   const handleRestart = () => {
     if (mode === 'online') return; // restart not synchronized in online mode
     if (timerRef.current) clearInterval(timerRef.current);
@@ -224,7 +225,7 @@ export default function GamePage({
     }
     setRouletteEffect(null);
     extraTurnRef.current = false;
-    boardHistoryRef.current = [cloneBoard(freshState.board)];
+    setBoardHistory([cloneBoard(freshState.board)]);
     setReplayIndex(null);
     if (timeControl?.type === 'game') {
       setPlayerTimes({ red: timeControl.seconds, black: timeControl.seconds });
@@ -349,13 +350,16 @@ export default function GamePage({
 
   useEffect(() => {
     if (timeControl?.type !== 'game' || !playerTimes || gameState.status !== 'playing') return;
-    if (playerTimes.red <= 0) {
-      setGameState(prev => ({ ...prev, status: 'black_wins' }));
-    } else if (playerTimes.black <= 0) {
-      setGameState(prev => ({ ...prev, status: 'red_wins' }));
+    if (playerTimes.red <= 0 || playerTimes.black <= 0) {
+      const id = setTimeout(() => {
+        setGameState(prev => {
+          if (prev.status !== 'playing') return prev;
+          return { ...prev, status: playerTimes.red <= 0 ? 'black_wins' : 'red_wins' };
+        });
+      }, 0);
+      return () => clearTimeout(id);
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [playerTimes]);
+  }, [playerTimes, timeControl, gameState.status]);
 
   // ---- Win detection ----
   useEffect(() => {
@@ -475,24 +479,18 @@ export default function GamePage({
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [mode, roomCode]);
 
-  // ---- Mines initialization ----
-  useEffect(() => {
-    if (mode !== 'mines') return;
-    setMines(generateMines());
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [mode]);
 
   // ---- Board history tracking for move replay ----
   useEffect(() => {
-    if (boardHistoryRef.current.length === 0) {
-      boardHistoryRef.current = [cloneBoard(gameState.board)];
-      return;
-    }
-    const expected = gameState.moveHistory.length + 1;
-    if (expected > boardHistoryRef.current.length) {
-      boardHistoryRef.current = [...boardHistoryRef.current, cloneBoard(gameState.board)];
-    }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    const snap = cloneBoard(gameState.board);
+    setTimeout(() => {
+      setBoardHistory(prev => {
+        if (prev.length === 0) return [snap];
+        const expected = gameState.moveHistory.length + 1;
+        if (expected > prev.length) return [...prev, snap];
+        return prev;
+      });
+    }, 0);
   }, [gameState.moveHistory.length, gameState.board]);
 
   // ---- Smooth opacity pulse on replay navigation (no remount) ----
@@ -563,7 +561,7 @@ export default function GamePage({
 
   // Replay display state
   const colLetter = (col: number) => String.fromCharCode(65 + col);
-  const replayBoard = replayIndex !== null ? (boardHistoryRef.current[replayIndex] ?? null) : null;
+  const replayBoard = replayIndex !== null ? (boardHistory[replayIndex] ?? null) : null;
   const displayGameState: GameState = replayBoard
     ? {
         ...gameState,
@@ -848,7 +846,7 @@ export default function GamePage({
             onRestart={handleRestart}
             onMenu={onExit}
             analysisNotes={analysisNotes}
-            boardHistory={boardHistoryRef.current}
+            boardHistory={boardHistory}
             moveHistory={gameState.moveHistory}
           />
         )}

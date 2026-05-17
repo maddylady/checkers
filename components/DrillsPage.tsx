@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Board from './Board';
 import { cloneBoard } from '@/lib/game-logic';
@@ -27,16 +27,10 @@ export default function DrillsPage({ onExit }: DrillsPageProps) {
   const [moveStep, setMoveStep] = useState(0);
   const [localBoard, setLocalBoard] = useState<BoardGrid>(() => cloneBoard(PUZZLES[0].board));
   const [selectedCell, setSelectedCell] = useState<[number, number] | null>(null);
-  const [progress, setProgress] = useState<Record<string, boolean>>({});
+  const [progress, setProgress] = useState<Record<string, boolean>>(() => getPuzzleProgress());
   const [showHint, setShowHint] = useState(false);
-  const [totalCoins, setTotalCoins] = useState(0);
+  const [totalCoins, setTotalCoins] = useState(() => getPuzzleCoins());
   const [direction, setDirection] = useState<1 | -1>(1);
-
-  // Load progress from localStorage after mount
-  useEffect(() => {
-    setProgress(getPuzzleProgress());
-    setTotalCoins(getPuzzleCoins());
-  }, []);
 
   const puzzle: Puzzle = PUZZLES[currentIndex];
 

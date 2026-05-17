@@ -1,18 +1,15 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { getDailyChallenges, getDailyProgress, type Challenge, type ChallengeProgress } from '@/lib/challenges';
 
 export default function DailyChallenges() {
-  const [challenges, setChallenges] = useState<[Challenge, Challenge, Challenge] | null>(null);
-  const [progress, setProgress] = useState<{ easy: ChallengeProgress; medium: ChallengeProgress; hard: ChallengeProgress } | null>(null);
-
-  useEffect(() => {
-    setChallenges(getDailyChallenges());
+  const [challenges] = useState<[Challenge, Challenge, Challenge] | null>(() => getDailyChallenges());
+  const [progress] = useState<{ easy: ChallengeProgress; medium: ChallengeProgress; hard: ChallengeProgress } | null>(() => {
     const dp = getDailyProgress();
-    setProgress({ easy: dp.easy, medium: dp.medium, hard: dp.hard });
-  }, []);
+    return { easy: dp.easy, medium: dp.medium, hard: dp.hard };
+  });
 
   if (!challenges || !progress) return null;
 

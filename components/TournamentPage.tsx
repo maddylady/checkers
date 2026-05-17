@@ -58,29 +58,36 @@ const CONFETTI_COLORS = [
   'bg-pink-400', 'bg-red-400', 'bg-cyan-400', 'bg-yellow-400',
 ];
 
-function ConfettiDot({ index }: { index: number }) {
-  const left = `${Math.random() * 100}%`;
-  const delay = Math.random() * 1.2;
-  const duration = 2.5 + Math.random() * 2;
-  const size = 6 + Math.floor(Math.random() * 8);
-  const color = CONFETTI_COLORS[index % CONFETTI_COLORS.length];
+// Pre-computed so Math.random() is never called during render
+const CONFETTI_DATA = Array.from({ length: 28 }, (_, i) => ({
+  left: `${(i * 3.7 + 2) % 96}%`,
+  delay: (i * 0.09) % 1.2,
+  duration: 2.5 + (i % 5) * 0.4,
+  size: 6 + (i % 5) * 2,
+  color: CONFETTI_COLORS[i % CONFETTI_COLORS.length],
+  yEnd: -(380 + (i % 6) * 40),
+  xStart: ((i % 5) - 2) * 40,
+  xEnd: ((i % 7) - 3) * 30,
+  rotate: i % 2 === 0 ? 360 : -360,
+}));
 
+interface ConfettiDotProps {
+  left: string; delay: number; duration: number; size: number;
+  color: string; yEnd: number; xStart: number; xEnd: number; rotate: number;
+}
+
+function ConfettiDot({ left, delay, duration, size, color, yEnd, xStart, xEnd, rotate }: ConfettiDotProps) {
   return (
     <motion.div
       className={`absolute rounded-full ${color} opacity-80`}
       style={{ left, bottom: '-20px', width: size, height: size }}
       animate={{
-        y: [0, -(400 + Math.random() * 200)],
-        x: [(Math.random() - 0.5) * 80, (Math.random() - 0.5) * 120],
+        y: [0, yEnd],
+        x: [xStart, xEnd],
         opacity: [0, 1, 1, 0],
-        rotate: [0, Math.random() > 0.5 ? 360 : -360],
+        rotate: [0, rotate],
       }}
-      transition={{
-        duration,
-        delay,
-        repeat: Infinity,
-        ease: 'easeOut',
-      }}
+      transition={{ duration, delay, repeat: Infinity, ease: 'easeOut' }}
     />
   );
 }
@@ -441,9 +448,6 @@ interface ChampionStepProps {
 }
 
 function ChampionStep({ champion, championGradient, onPlayAgain, onNewTournament, onExit }: ChampionStepProps) {
-  // Pre-compute random values for confetti to keep them stable across renders
-  const confettiCount = 28;
-
   return (
     <motion.div
       key="champion"
@@ -455,8 +459,8 @@ function ChampionStep({ champion, championGradient, onPlayAgain, onNewTournament
     >
       {/* Confetti container */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none" aria-hidden>
-        {Array.from({ length: confettiCount }).map((_, i) => (
-          <ConfettiDot key={i} index={i} />
+        {CONFETTI_DATA.map((dot, i) => (
+          <ConfettiDot key={i} {...dot} />
         ))}
       </div>
 

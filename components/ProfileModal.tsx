@@ -2,7 +2,7 @@
 
 import { useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Trophy, TrendingUp, TrendingDown, Minus } from 'lucide-react';
+import { X, Trophy, TrendingUp, TrendingDown } from 'lucide-react';
 import type { PlayerStats, GameRecord } from '@/lib/game-logic';
 
 interface ProfileModalProps {
