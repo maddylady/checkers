@@ -32,6 +32,7 @@ interface GamePageProps {
   roomCode?: string;
   username: string;
   playerColor?: Player;
+  botName?: string;
   onExit: () => void;
 }
 
@@ -41,6 +42,7 @@ export default function GamePage({
   roomCode,
   username,
   playerColor: initialPlayerColor,
+  botName,
   onExit,
 }: GamePageProps) {
   const [gameState, setGameState] = useState<GameState>(createInitialGameState());
@@ -299,7 +301,7 @@ export default function GamePage({
       }
 
       const opp = (mode === 'ai' || mode === 'mines' || mode === 'roulette')
-        ? `AI (${difficulty})`
+        ? (botName || `AI (${difficulty})`)
         : opponentNameRef.current || 'Player 2';
 
       const myCaptures = color === 'red' ? gameState.captured.black : gameState.captured.red;
@@ -504,7 +506,7 @@ export default function GamePage({
             onResign={handleResign}
             playerColor={mode !== 'local' ? playerColor : undefined}
             turnTimer={turnTimer}
-            opponentName={(mode === 'ai' || mode === 'mines' || mode === 'roulette') ? `AI (${difficulty})` : opponentName}
+            opponentName={(mode === 'ai' || mode === 'mines' || mode === 'roulette') ? (botName || `AI (${difficulty})`) : opponentName}
             thinking={thinking}
           />
 
@@ -567,7 +569,7 @@ export default function GamePage({
                 {(mode === 'ai' || mode === 'mines' || mode === 'roulette') && playerColor === 'black' ? username :
                  mode === 'online' && playerColor === 'black' ? username :
                  mode === 'local' ? 'Black' :
-                 opponentName || `AI (${difficulty})`}
+                 botName || opponentName || `AI (${difficulty})`}
               </span>
               {gameState.currentPlayer === 'black' && gameState.status === 'playing' && (
                 <motion.div
@@ -593,7 +595,7 @@ export default function GamePage({
                 {(mode === 'ai' || mode === 'mines' || mode === 'roulette') && playerColor === 'red' ? username :
                  mode === 'online' && playerColor === 'red' ? username :
                  mode === 'local' ? 'Red' :
-                 opponentName || `AI (${difficulty})`}
+                 botName || opponentName || `AI (${difficulty})`}
               </span>
               {gameState.currentPlayer === 'red' && gameState.status === 'playing' && (
                 <motion.div

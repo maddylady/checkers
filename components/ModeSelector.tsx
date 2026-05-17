@@ -8,19 +8,39 @@ import type { Difficulty } from '@/lib/ai';
 export type GameMode = 'ai' | 'local' | 'online' | 'mines' | 'roulette';
 
 interface ModeSelectorProps {
-  onSelect: (mode: GameMode, difficulty?: Difficulty, roomCode?: string) => void;
+  onSelect: (mode: GameMode, difficulty?: Difficulty, roomCode?: string, botName?: string) => void;
 }
 
-const difficulties: { value: Difficulty; label: string; desc: string; color: string }[] = [
-  { value: 'easy', label: 'Easy', desc: 'Random moves, great for beginners', color: 'from-green-600 to-green-700' },
-  { value: 'medium', label: 'Medium', desc: 'Minimax depth 4, a worthy opponent', color: 'from-yellow-600 to-yellow-700' },
-  { value: 'hard', label: 'Hard', desc: 'Full alpha-beta depth 7, ruthless', color: 'from-red-600 to-red-700' },
+interface BotCharacter {
+  id: string;
+  name: string;
+  emoji: string;
+  tagline: string;
+  difficulty: Difficulty;
+  color: string;
+}
+
+const bots: BotCharacter[] = [
+  { id: 'grandma', name: 'Grandma Rose', emoji: '👵', tagline: 'Bakes cookies, plays slow', difficulty: 'easy', color: 'from-pink-600 to-rose-500' },
+  { id: 'baby', name: 'Baby Bot', emoji: '🐣', tagline: 'Just hatched, learning fast', difficulty: 'easy', color: 'from-yellow-500 to-amber-400' },
+  { id: 'lucky', name: 'Lucky Larry', emoji: '🎲', tagline: 'Random but surprisingly fun', difficulty: 'easy', color: 'from-teal-600 to-cyan-500' },
+  { id: 'detective', name: 'Detective Dan', emoji: '🕵️', tagline: 'Investigates every move', difficulty: 'medium', color: 'from-blue-600 to-indigo-500' },
+  { id: 'bookworm', name: 'The Bookworm', emoji: '📚', tagline: 'Studied all the openings', difficulty: 'medium', color: 'from-violet-600 to-purple-500' },
+  { id: 'wolf', name: 'Wall St. Wolf', emoji: '🦈', tagline: 'Calculates risk like markets', difficulty: 'medium', color: 'from-slate-600 to-gray-500' },
+  { id: 'deepcheck', name: 'DeepCheck', emoji: '🤖', tagline: 'Minimax at full depth', difficulty: 'hard', color: 'from-red-700 to-red-500' },
+  { id: 'magnus', name: 'Magnus Jr.', emoji: '♟️', tagline: 'Born to dominate the board', difficulty: 'hard', color: 'from-orange-700 to-amber-600' },
+  { id: 'oracle', name: 'The Oracle', emoji: '👁️', tagline: 'Sees your future. It is bleak.', difficulty: 'hard', color: 'from-purple-800 to-violet-600' },
 ];
 
-export default function ModeSelector({ onSelect }: ModeSelectorProps) {
-  const [step, setStep] = useState<'mode' | 'difficulty' | 'online'>('mode');
-  const [pendingMode, setPendingMode] = useState<GameMode>('ai');
+const tierLabel: Record<Difficulty, string> = {
+  easy: '🟢 Beginner',
+  medium: '🟡 Intermediate',
+  hard: '🔴 Expert',
+};
 
+export default function ModeSelector({ onSelect }: ModeSelectorProps) {
+  const [step, setStep] = useState<'mode' | 'bots' | 'online'>('mode');
+  const [pendingMode, setPendingMode] = useState<GameMode>('ai');
   const [joinCode, setJoinCode] = useState('');
 
   const generateRoomCode = () => {
@@ -42,8 +62,8 @@ export default function ModeSelector({ onSelect }: ModeSelectorProps) {
     {
       mode: 'ai' as GameMode,
       icon: <Bot size={28} />,
-      title: 'vs AI',
-      desc: 'Challenge our Minimax engine at 3 difficulty levels',
+      title: 'vs Bots',
+      desc: 'Challenge one of 9 unique bot characters across 3 skill tiers',
       color: 'from-purple-600 to-blue-600',
       badge: 'Single Player',
     },
@@ -105,7 +125,7 @@ export default function ModeSelector({ onSelect }: ModeSelectorProps) {
                 onClick={() => {
                   if (mode === 'ai' || mode === 'mines' || mode === 'roulette') {
                     setPendingMode(mode);
-                    setStep('difficulty');
+                    setStep('bots');
                   } else if (mode === 'online') setStep('online');
                   else onSelect('local');
                 }}
@@ -127,40 +147,49 @@ export default function ModeSelector({ onSelect }: ModeSelectorProps) {
           </motion.div>
         )}
 
-        {step === 'difficulty' && (
+        {step === 'bots' && (
           <motion.div
-            key="difficulty"
+            key="bots"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -20 }}
-            className="space-y-4"
           >
-            <div className="text-center mb-8">
-              <h2 className="text-2xl font-bold text-white mb-2">Choose Difficulty</h2>
-              <p className="text-gray-400">How hard should the AI play?</p>
+            <div className="text-center mb-6">
+              <h2 className="text-2xl font-bold text-white mb-2">Pick Your Opponent</h2>
+              <p className="text-gray-400">9 bots, 3 skill tiers — choose your challenge</p>
             </div>
 
-            {difficulties.map(({ value, label, desc, color }) => (
-              <motion.button
-                key={value}
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
-                onClick={() => onSelect(pendingMode, value)}
-                className="w-full flex items-center gap-4 p-5 rounded-2xl bg-white/5 hover:bg-white/10 border border-white/10 hover:border-white/20 transition-all group text-left"
-              >
-                <div className={`px-4 py-2 rounded-xl bg-gradient-to-br ${color} text-white font-bold text-sm flex-shrink-0`}>
-                  {label}
+            {(['easy', 'medium', 'hard'] as Difficulty[]).map(tier => (
+              <div key={tier} className="mb-5">
+                <div className="text-xs font-semibold text-gray-500 uppercase tracking-widest mb-2 px-1">
+                  {tierLabel[tier]}
                 </div>
-                <div className="flex-1">
-                  <p className="text-gray-300 text-sm">{desc}</p>
+                <div className="grid grid-cols-3 gap-2">
+                  {bots.filter(b => b.difficulty === tier).map((bot, i) => (
+                    <motion.button
+                      key={bot.id}
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: i * 0.04 }}
+                      whileHover={{ scale: 1.04, y: -2 }}
+                      whileTap={{ scale: 0.96 }}
+                      onClick={() => onSelect(pendingMode, bot.difficulty, undefined, bot.name)}
+                      className="flex flex-col items-center gap-1.5 p-3 rounded-2xl bg-white/5 hover:bg-white/10 border border-white/10 hover:border-white/25 transition-all text-center group"
+                    >
+                      <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${bot.color} flex items-center justify-center text-2xl shadow-lg`}>
+                        {bot.emoji}
+                      </div>
+                      <span className="text-white text-xs font-bold leading-tight">{bot.name}</span>
+                      <span className="text-gray-500 text-[10px] leading-tight">{bot.tagline}</span>
+                    </motion.button>
+                  ))}
                 </div>
-                <ChevronRight size={20} className="text-gray-500 group-hover:text-white transition-colors" />
-              </motion.button>
+              </div>
             ))}
 
             <button
               onClick={() => setStep('mode')}
-              className="w-full py-3 text-gray-400 hover:text-white text-sm transition-colors"
+              className="w-full py-3 text-gray-400 hover:text-white text-sm transition-colors mt-2"
             >
               ← Back
             </button>

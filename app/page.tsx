@@ -33,6 +33,7 @@ export default function HomePage() {
   const [gameMode, setGameMode] = useState<GameMode>('ai');
   const [difficulty, setDifficulty] = useState<Difficulty>('medium');
   const [roomCode, setRoomCode] = useState<string | undefined>();
+  const [botName, setBotName] = useState<string | undefined>();
   const [username, setUsernameState] = useState('');
   const [city, setCityState] = useState('');
   const [isFirstTime, setIsFirstTime] = useState(true);
@@ -94,10 +95,11 @@ export default function HomePage() {
     setStats(getStats());
   };
 
-  const handleModeSelect = (mode: GameMode, diff?: Difficulty, code?: string) => {
+  const handleModeSelect = (mode: GameMode, diff?: Difficulty, code?: string, name?: string) => {
     setGameMode(mode);
     if (diff) setDifficulty(diff);
     if (code) setRoomCode(code);
+    setBotName(name);
     setScreen('game');
   };
 
@@ -377,6 +379,7 @@ export default function HomePage() {
               difficulty={difficulty}
               roomCode={roomCode}
               username={username}
+              botName={botName}
               onExit={handleExitGame}
             />
           </motion.div>
