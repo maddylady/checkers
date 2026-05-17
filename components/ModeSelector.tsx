@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Bot, Users, Globe, ChevronRight, Wifi, Zap, Shuffle, Trophy } from 'lucide-react';
+import { Bot, Users, Globe, ChevronRight, Wifi, Zap, Shuffle, Trophy, Award } from 'lucide-react';
 import type { Difficulty } from '@/lib/ai';
 import type { RulesVariant } from '@/lib/game-logic';
 import {
@@ -34,6 +34,7 @@ interface ModeSelectorProps {
     gauntletBotId?: string,
   ) => void;
   onStepChange?: (step: string) => void;
+  onTournament?: () => void;
   rulesVariant?: RulesVariant;
   onVariantChange?: (v: RulesVariant) => void;
 }
@@ -183,7 +184,7 @@ const TIME_CONTROLS = [
 
 type Step = 'mode' | 'bots' | 'online' | 'pregame';
 
-export default function ModeSelector({ onSelect, onStepChange, rulesVariant = 'american', onVariantChange }: ModeSelectorProps) {
+export default function ModeSelector({ onSelect, onStepChange, onTournament, rulesVariant = 'american', onVariantChange }: ModeSelectorProps) {
   const [step, setStep] = useState<Step>('mode');
   const [pendingMode, setPendingMode] = useState<GameMode>('ai');
   const [pendingBot, setPendingBot] = useState<BotCharacter | null>(null);
@@ -247,12 +248,13 @@ export default function ModeSelector({ onSelect, onStepChange, rulesVariant = 'a
   };
 
   const modes = [
-    { mode: 'ai' as GameMode,        icon: <Bot size={28} />,     title: 'vs Bots',      desc: 'Challenge 22 unique bots — from beginners to legends', color: 'from-purple-600 to-blue-600',   badge: 'Single Player', isGauntlet: false },
-    { mode: 'ai' as GameMode,        icon: <Trophy size={28} />,  title: 'Gauntlet',     desc: 'Beat all 22 bots in order. From Chicky to DeepCheck.', color: 'from-amber-600 to-red-600',     badge: 'Tournament',    isGauntlet: true  },
-    { mode: 'local' as GameMode,     icon: <Users size={28} />,   title: 'Local 2P',     desc: 'Play with a friend on the same screen',                color: 'from-amber-600 to-orange-600',  badge: 'Same Device',   isGauntlet: false },
-    { mode: 'online' as GameMode,    icon: <Globe size={28} />,   title: 'Online',       desc: 'Play with anyone, anywhere via room code',             color: 'from-green-600 to-teal-600',    badge: 'Multiplayer',   isGauntlet: false },
-    { mode: 'mines' as GameMode,     icon: <Zap size={28} />,     title: 'Mines Mode',   desc: 'Hidden mines detonate when landed on.',                color: 'from-orange-600 to-red-600',    badge: 'Chaos',         isGauntlet: false },
-    { mode: 'roulette' as GameMode,  icon: <Shuffle size={28} />, title: 'Roulette',     desc: 'Spin the wheel each turn. Extra move, skip, or normal?', color: 'from-purple-600 to-pink-600', badge: 'Luck',          isGauntlet: false },
+    { mode: 'ai' as GameMode,        icon: <Bot size={28} />,     title: 'vs Bots',      desc: 'Challenge 22 unique bots — from beginners to legends', color: 'from-purple-600 to-blue-600',   badge: 'Single Player', isGauntlet: false, isTournament: false },
+    { mode: 'ai' as GameMode,        icon: <Award size={28} />,   title: 'Tournament',   desc: '4-player bracket. Invite friends and battle for the crown.', color: 'from-violet-600 to-purple-600', badge: 'Bracket', isGauntlet: false, isTournament: true },
+    { mode: 'ai' as GameMode,        icon: <Trophy size={28} />,  title: 'Gauntlet',     desc: 'Beat all 22 bots in order. From Chicky to DeepCheck.', color: 'from-amber-600 to-red-600',     badge: 'Challenge',     isGauntlet: true,  isTournament: false },
+    { mode: 'local' as GameMode,     icon: <Users size={28} />,   title: 'Local 2P',     desc: 'Play with a friend on the same screen',                color: 'from-amber-600 to-orange-600',  badge: 'Same Device',   isGauntlet: false, isTournament: false },
+    { mode: 'online' as GameMode,    icon: <Globe size={28} />,   title: 'Online',       desc: 'Play with anyone, anywhere via room code',             color: 'from-green-600 to-teal-600',    badge: 'Multiplayer',   isGauntlet: false, isTournament: false },
+    { mode: 'mines' as GameMode,     icon: <Zap size={28} />,     title: 'Mines Mode',   desc: 'Hidden mines detonate when landed on.',                color: 'from-orange-600 to-red-600',    badge: 'Chaos',         isGauntlet: false, isTournament: false },
+    { mode: 'roulette' as GameMode,  icon: <Shuffle size={28} />, title: 'Roulette',     desc: 'Spin the wheel each turn. Extra move, skip, or normal?', color: 'from-purple-600 to-pink-600', badge: 'Luck',          isGauntlet: false, isTournament: false },
   ];
 
   return (
@@ -266,13 +268,15 @@ export default function ModeSelector({ onSelect, onStepChange, rulesVariant = 'a
               <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">Choose Game Mode</h2>
               <p className="text-gray-500 dark:text-gray-400">How do you want to play?</p>
             </div>
-            {modes.map(({ mode, icon, title, desc, color, badge, isGauntlet: modeIsGauntlet }) => (
+            {modes.map(({ mode, icon, title, desc, color, badge, isGauntlet: modeIsGauntlet, isTournament }) => (
               <motion.button
                 key={title}
                 whileHover={{ scale: 1.01 }}
                 whileTap={{ scale: 0.98 }}
                 onClick={() => {
-                  if (modeIsGauntlet) {
+                  if (isTournament) {
+                    onTournament?.();
+                  } else if (modeIsGauntlet) {
                     // Gauntlet mode: find current bot and jump to pregame
                     let gs = getGauntletState();
                     if (!gs.active || !gs.currentBotId) {

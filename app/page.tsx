@@ -8,7 +8,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import Navbar from '@/components/Navbar';
 import ModeSelector, { type GameMode, type TimeControl } from '@/components/ModeSelector';
 import GamePage from '@/components/GamePage';
-import DrillsPage from '@/components/DrillsPage';
+import TournamentPage from '@/components/TournamentPage';
 import Leaderboard from '@/components/Leaderboard';
 import UsernameModal from '@/components/UsernameModal';
 import DailyChallenges from '@/components/DailyChallenges';
@@ -32,7 +32,7 @@ import { fetchLeaderboard, onAuthStateChange, type AuthUser } from '@/lib/supaba
 import type { Difficulty } from '@/lib/ai';
 import type { PlayerStats, GameRecord, RulesVariant } from '@/lib/game-logic';
 
-type Screen = 'home' | 'game' | 'drills';
+type Screen = 'home' | 'game' | 'tournament';
 
 export default function HomePage() {
   const [screen, setScreen] = useState<Screen>('home');
@@ -211,6 +211,7 @@ export default function HomePage() {
                       key={selectorKey}
                       onSelect={handleModeSelect}
                       onStepChange={setSelectorStep}
+                      onTournament={() => setScreen('tournament')}
                       rulesVariant={rulesVariant}
                       onVariantChange={(v) => { setRulesVariantState(v); setRulesVariant(v); }}
                     />
@@ -428,26 +429,32 @@ export default function HomePage() {
 
             </div>
 
-            {/* Drills CTA */}
+            {/* Social / Viral challenge card */}
             <motion.div
               initial={{ opacity: 0, y: 8 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.35 }}
               className="max-w-6xl mx-auto px-4 pb-4"
             >
-              <div className="rounded-2xl p-4 border border-amber-500/30 bg-amber-500/5 dark:bg-amber-500/10 backdrop-blur-sm shadow-sm">
-                <div className="flex items-center justify-between gap-4">
-                  <div>
-                    <div className="font-bold text-gray-900 dark:text-white flex items-center gap-2 text-sm">
-                      🎯 Tactics Drills
-                    </div>
-                    <div className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">10 puzzles · Sharpen your skills · Earn coins</div>
+              <div className="rounded-2xl p-4 border border-pink-500/30 bg-gradient-to-r from-pink-500/5 to-violet-500/5 dark:from-pink-500/10 dark:to-violet-500/10 backdrop-blur-sm shadow-sm">
+                <div className="flex items-center gap-4">
+                  <span className="text-3xl flex-shrink-0">🎬</span>
+                  <div className="flex-1 min-w-0">
+                    <div className="font-bold text-gray-900 dark:text-white text-sm">TikTok Challenge — Win a Prize!</div>
+                    <div className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">Record your best game, post on TikTok, tag <span className="text-pink-500 font-semibold">@CheckMateArena</span> — top clips win a giveaway entry</div>
                   </div>
                   <button
-                    onClick={() => setScreen('drills')}
-                    className="flex-shrink-0 px-4 py-2 bg-amber-500 hover:bg-amber-400 text-white rounded-xl font-semibold text-sm transition-colors shadow-md shadow-amber-500/25"
+                    onClick={() => {
+                      const text = `I'm playing CheckMate Arena — the most addictive checkers game! 🎮♟️ Challenge me if you dare! #CheckMateArena #Checkers`;
+                      if (navigator.share) {
+                        navigator.share({ title: 'CheckMate Arena', text, url: window.location.href });
+                      } else {
+                        navigator.clipboard.writeText(`${text}\n${window.location.href}`);
+                      }
+                    }}
+                    className="flex-shrink-0 px-4 py-2 bg-gradient-to-r from-pink-500 to-violet-600 hover:from-pink-400 hover:to-violet-500 text-white rounded-xl font-semibold text-sm transition-all shadow-md shadow-pink-500/25"
                   >
-                    Start →
+                    Share ↗
                   </button>
                 </div>
               </div>
@@ -481,14 +488,14 @@ export default function HomePage() {
           </motion.div>
         )}
 
-        {screen === 'drills' && (
+        {screen === 'tournament' && (
           <motion.div
-            key="drills"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
+            key="tournament"
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: -20 }}
           >
-            <DrillsPage onExit={() => setScreen('home')} username={username} />
+            <TournamentPage onExit={() => setScreen('home')} username={username} />
           </motion.div>
         )}
       </AnimatePresence>
