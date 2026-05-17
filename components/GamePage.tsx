@@ -13,11 +13,13 @@ import {
   analyzeGame,
   isLegalMove,
   checkWinCondition,
+  cloneBoard,
   type GameState,
   type Player,
   type Move,
   type AnalysisNote,
   type RulesVariant,
+  type Board as BoardGrid,
 } from '@/lib/game-logic';
 import { getBestMove, type Difficulty } from '@/lib/ai';
 import { recordGameResult } from '@/lib/storage';
@@ -80,6 +82,10 @@ export default function GamePage({
   const playerColorRef = useRef<Player>(playerColor);
   const opponentNameRef = useRef<string>(opponentName);
   const socketRef = useRef<SocketType | null>(null);
+
+  // Move replay
+  const [replayIndex, setReplayIndex] = useState<number | null>(null);
+  const boardHistoryRef = useRef<BoardGrid[]>([]);
 
   // Keep refs current — useLayoutEffect runs sync after paint, safe for effects/handlers
   useLayoutEffect(() => {
@@ -197,7 +203,8 @@ export default function GamePage({
   const handleRestart = () => {
     if (mode === 'online') return; // restart not synchronized in online mode
     if (timerRef.current) clearInterval(timerRef.current);
-    setGameState(createInitialGameState(rulesVariant));
+    const freshState = createInitialGameState(rulesVariant);
+    setGameState(freshState);
     setShowWin(false);
     gameStartTime.current = Date.now();
     if (mode === 'mines') {
@@ -206,6 +213,8 @@ export default function GamePage({
     }
     setRouletteEffect(null);
     extraTurnRef.current = false;
+    boardHistoryRef.current = [cloneBoard(freshState.board)];
+    setReplayIndex(null);
   };
 
   const handleResign = () => {
@@ -415,6 +424,19 @@ export default function GamePage({
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [mode]);
 
+  // ---- Board history tracking for move replay ----
+  useEffect(() => {
+    if (boardHistoryRef.current.length === 0) {
+      boardHistoryRef.current = [cloneBoard(gameState.board)];
+      return;
+    }
+    const expected = gameState.moveHistory.length + 1;
+    if (expected > boardHistoryRef.current.length) {
+      boardHistoryRef.current = [...boardHistoryRef.current, cloneBoard(gameState.board)];
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [gameState.moveHistory.length, gameState.board]);
+
   // ---- Roulette spin ----
   useEffect(() => {
     if (mode !== 'roulette') return;
@@ -462,6 +484,19 @@ export default function GamePage({
     ((mode === 'ai' || mode === 'mines' || mode === 'roulette') && gameState.currentPlayer === playerColor && !rouletteSpinning) ||
     (mode === 'online' && onlineStatus === 'playing' && gameState.currentPlayer === playerColor);
   const flipBoard = mode === 'local' ? gameState.currentPlayer === 'red' : playerColor === 'red';
+
+  // Replay display state
+  const colLetter = (col: number) => String.fromCharCode(65 + col);
+  const replayBoard = replayIndex !== null ? (boardHistoryRef.current[replayIndex] ?? null) : null;
+  const displayGameState: GameState = replayBoard
+    ? {
+        ...gameState,
+        board: replayBoard,
+        selectedCell: null,
+        validMoves: [],
+        moveHistory: (replayIndex ?? 0) > 0 ? gameState.moveHistory.slice(0, replayIndex ?? 0) : [],
+      }
+    : gameState;
 
   return (
     <div className="min-h-screen pt-16 flex flex-col">
@@ -563,11 +598,113 @@ export default function GamePage({
               )}
             </div>
           )}
+
+          {/* Move history / replay */}
+          {gameState.moveHistory.length > 0 && (
+            <div className="bg-white/5 rounded-2xl p-4 border border-white/10">
+              <div className="flex items-center justify-between mb-2">
+                <div className="text-xs text-gray-400 uppercase tracking-wider">Move History</div>
+                {replayIndex !== null && (
+                  <button
+                    onClick={() => setReplayIndex(null)}
+                    className="text-xs text-amber-400 hover:text-amber-300 transition-colors"
+                  >
+                    Live →
+                  </button>
+                )}
+              </div>
+              <div className="text-center text-xs font-mono text-gray-300 mb-2">
+                {replayIndex !== null ? replayIndex : gameState.moveHistory.length}
+                <span className="text-gray-600"> / {gameState.moveHistory.length}</span>
+              </div>
+              {/* Navigation buttons */}
+              <div className="flex items-center justify-center gap-1 mb-2">
+                <button
+                  onClick={() => setReplayIndex(0)}
+                  disabled={(replayIndex ?? gameState.moveHistory.length) === 0}
+                  title="First move"
+                  className="px-2 py-1 rounded-lg text-xs bg-white/5 hover:bg-white/15 text-gray-300 hover:text-white transition-colors disabled:opacity-30"
+                >⏮</button>
+                <button
+                  onClick={() => setReplayIndex(prev => Math.max(0, (prev ?? gameState.moveHistory.length) - 1))}
+                  disabled={(replayIndex ?? gameState.moveHistory.length) === 0}
+                  title="Previous move"
+                  className="px-2 py-1 rounded-lg text-xs bg-white/5 hover:bg-white/15 text-gray-300 hover:text-white transition-colors disabled:opacity-30"
+                >◀</button>
+                <button
+                  onClick={() => {
+                    const curr = replayIndex ?? gameState.moveHistory.length;
+                    const next = curr + 1;
+                    if (next >= gameState.moveHistory.length) setReplayIndex(null);
+                    else setReplayIndex(next);
+                  }}
+                  disabled={replayIndex === null}
+                  title="Next move"
+                  className="px-2 py-1 rounded-lg text-xs bg-white/5 hover:bg-white/15 text-gray-300 hover:text-white transition-colors disabled:opacity-30"
+                >▶</button>
+                <button
+                  onClick={() => setReplayIndex(null)}
+                  disabled={replayIndex === null}
+                  title="Latest (live)"
+                  className="px-2 py-1 rounded-lg text-xs bg-white/5 hover:bg-white/15 text-gray-300 hover:text-white transition-colors disabled:opacity-30"
+                >⏭</button>
+              </div>
+              {/* Move list */}
+              <div className="max-h-40 overflow-y-auto space-y-0.5 pr-0.5">
+                <button
+                  onClick={() => setReplayIndex(0)}
+                  className={`w-full flex items-center gap-2 px-2 py-1 rounded-lg text-xs transition-colors ${
+                    replayIndex === 0 ? 'bg-amber-500/20 text-amber-400' : 'hover:bg-white/5 text-gray-600'
+                  }`}
+                >
+                  <span className="w-6 text-right shrink-0 text-gray-600">0.</span>
+                  <span>Start</span>
+                </button>
+                {gameState.moveHistory.map((move, i) => {
+                  const isRed = i % 2 === 0;
+                  const isActive = (replayIndex ?? gameState.moveHistory.length) === i + 1;
+                  return (
+                    <button
+                      key={i}
+                      onClick={() => setReplayIndex(i + 1)}
+                      className={`w-full flex items-center gap-1.5 px-2 py-1 rounded-lg text-xs transition-colors ${
+                        isActive ? 'bg-amber-500/20 text-amber-400' : 'hover:bg-white/5 text-gray-400'
+                      }`}
+                    >
+                      <span className="w-6 text-right shrink-0 text-gray-600">{i + 1}.</span>
+                      <div className={`w-2 h-2 rounded-full shrink-0 ${isRed ? 'bg-red-400' : 'bg-gray-300'}`} />
+                      <span className="font-mono text-[11px] flex-1 text-left">
+                        {colLetter(move.from[1])}{8 - move.from[0]}→{colLetter(move.to[1])}{8 - move.to[0]}
+                      </span>
+                      {move.captures.length > 0 && (
+                        <span className="text-orange-400 shrink-0">×{move.captures.length}</span>
+                      )}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Main board area */}
         <div className="flex-1 flex items-start justify-center order-1 lg:order-2">
           <div className="flex flex-col items-center gap-4">
+            {/* Replay indicator */}
+            {replayIndex !== null && (
+              <div className="flex items-center gap-3 bg-amber-500/15 border border-amber-500/30 rounded-xl px-4 py-2">
+                <span className="text-amber-400 text-xs font-semibold">
+                  Move {replayIndex} / {gameState.moveHistory.length}
+                </span>
+                <button
+                  onClick={() => setReplayIndex(null)}
+                  className="text-xs text-amber-400 hover:text-white transition-colors underline"
+                >
+                  Back to live
+                </button>
+              </div>
+            )}
+
             {/* Player labels */}
             <div className="flex items-center gap-3">
               <div className="w-5 h-5 rounded-full bg-gradient-to-br from-gray-600 to-gray-900 border border-gray-400" />
@@ -587,10 +724,10 @@ export default function GamePage({
             </div>
 
             <Board
-              gameState={gameState}
+              gameState={displayGameState}
               onCellClick={handleCellClick}
               flipped={flipBoard}
-              disabled={!isPlayerTurn || thinking || gameState.status !== 'playing' || rouletteSpinning}
+              disabled={!isPlayerTurn || thinking || gameState.status !== 'playing' || rouletteSpinning || replayIndex !== null}
               triggeredMines={triggeredMines}
               showAllMines={gameState.status !== 'playing' ? mines : undefined}
             />

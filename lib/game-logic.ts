@@ -176,8 +176,11 @@ function getChainCaptures(
   const piece = board[row][col];
   if (!piece) return [];
 
+  // Russian rules: regular pieces can capture in all 4 directions (forward and backward)
   const dirs: [number, number][] =
     piece.type === 'king'
+      ? [[-1, -1], [-1, 1], [1, -1], [1, 1]]
+      : variant === 'russian'
       ? [[-1, -1], [-1, 1], [1, -1], [1, 1]]
       : piece.player === 'red'
       ? [[1, -1], [1, 1]]
