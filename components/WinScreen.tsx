@@ -138,7 +138,7 @@ export default function WinScreen({
         {/* Backdrop */}
         <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" />
 
-        <div className="relative bg-gradient-to-br from-gray-900 to-gray-800 rounded-3xl p-6 sm:p-8 border border-white/10 shadow-2xl max-w-md w-full max-h-[90vh] overflow-y-auto">
+        <div className="relative bg-white dark:bg-gray-900 rounded-3xl p-6 sm:p-8 border border-gray-200 dark:border-white/10 shadow-2xl max-w-md w-full max-h-[90vh] overflow-y-auto">
           {/* Trophy */}
           <motion.div
             initial={{ y: -20, opacity: 0 }}
@@ -169,8 +169,8 @@ export default function WinScreen({
             transition={{ delay: 0.3 }}
             className="text-center mb-6"
           >
-            <h2 className="text-4xl font-bold text-white mb-2">{title}</h2>
-            <p className="text-gray-400">{subtitle}</p>
+            <h2 className="text-4xl font-bold text-gray-900 dark:text-white mb-2">{title}</h2>
+            <p className="text-gray-500 dark:text-gray-400">{subtitle}</p>
           </motion.div>
 
           {/* Winner indicator */}
@@ -202,16 +202,16 @@ export default function WinScreen({
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.5 }}
-              className="mb-4 border border-white/10 rounded-2xl overflow-hidden"
+              className="mb-4 border border-gray-200 dark:border-white/10 rounded-2xl overflow-hidden"
             >
               <button
                 onClick={() => setShowAnalysis(!showAnalysis)}
-                className="w-full flex items-center justify-between p-4 text-left hover:bg-white/5 transition-colors"
+                className="w-full flex items-center justify-between p-4 text-left hover:bg-gray-50 dark:hover:bg-white/5 transition-colors"
               >
-                <span className="font-semibold text-white flex items-center gap-2">
+                <span className="font-semibold text-gray-900 dark:text-white flex items-center gap-2">
                   🧠 AI Coach Analysis
                 </span>
-                {showAnalysis ? <ChevronUp size={16} className="text-gray-400" /> : <ChevronDown size={16} className="text-gray-400" />}
+                {showAnalysis ? <ChevronUp size={16} className="text-gray-500 dark:text-gray-400" /> : <ChevronDown size={16} className="text-gray-500 dark:text-gray-400" />}
               </button>
 
               <AnimatePresence>
@@ -224,7 +224,7 @@ export default function WinScreen({
                   >
                     <div className="px-4 pb-4 space-y-2 max-h-48 overflow-y-auto">
                       {analysisNotes.slice(0, 8).map((note, i) => (
-                        <div key={i} className="flex items-start gap-2 text-sm text-gray-300">
+                        <div key={i} className="flex items-start gap-2 text-sm text-gray-700 dark:text-gray-300">
                           {severityIcon[note.severity]}
                           <span>{note.message}</span>
                         </div>
@@ -251,7 +251,7 @@ export default function WinScreen({
               whileHover={{ scale: 1.03 }}
               whileTap={{ scale: 0.97 }}
               onClick={onMenu}
-              className="flex-1 py-3 rounded-2xl bg-white/10 hover:bg-white/20 text-white font-semibold transition-all border border-white/10"
+              className="flex-1 py-3 rounded-2xl bg-gray-100 dark:bg-white/10 hover:bg-gray-200 dark:hover:bg-white/20 text-gray-900 dark:text-white font-semibold transition-all border border-gray-200 dark:border-white/10"
             >
               Main Menu
             </motion.button>

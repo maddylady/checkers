@@ -20,7 +20,7 @@ function EloSparkline({ history }: { history: GameRecord[] }) {
     .reverse();
 
   if (points.length < 2) return (
-    <div className="text-xs text-gray-500 text-center py-4">Play more games to see your ELO trend</div>
+    <div className="text-xs text-gray-600 dark:text-gray-500 text-center py-4">Play more games to see your ELO trend</div>
   );
 
   const elos = points.map(g => g.eloAfter!);
@@ -43,7 +43,7 @@ function EloSparkline({ history }: { history: GameRecord[] }) {
   return (
     <div>
       <div className="flex items-center justify-between mb-1">
-        <span className="text-xs text-gray-500">ELO trend (last {points.length} games)</span>
+        <span className="text-xs text-gray-600 dark:text-gray-500">ELO trend (last {points.length} games)</span>
         <span className={`text-xs font-semibold flex items-center gap-1 ${trending ? 'text-green-400' : 'text-red-400'}`}>
           {trending ? <TrendingUp size={12} /> : <TrendingDown size={12} />}
           {trending ? '+' : ''}{last - first}
@@ -96,9 +96,9 @@ export default function ProfileModal({ stats, history, streak, coins, onClose }:
           animate={{ scale: 1, y: 0, opacity: 1 }}
           exit={{ scale: 0.92, y: 20, opacity: 0 }}
           transition={{ type: 'spring', stiffness: 300, damping: 28 }}
-          className="relative bg-gray-900 border border-white/10 rounded-3xl shadow-2xl max-w-md w-full max-h-[90vh] overflow-y-auto"
+          className="relative bg-white dark:bg-gray-900 border border-gray-200 dark:border-white/10 rounded-3xl shadow-2xl max-w-md w-full max-h-[90vh] overflow-y-auto"
         >
-          <button onClick={onClose} className="absolute top-4 right-4 text-gray-400 hover:text-white transition-colors z-10">
+          <button onClick={onClose} className="absolute top-4 right-4 text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors z-10">
             <X size={20} />
           </button>
 
@@ -109,8 +109,8 @@ export default function ProfileModal({ stats, history, streak, coins, onClose }:
                 {stats.username[0]?.toUpperCase()}
               </div>
               <div className="flex-1">
-                <div className="text-xl font-black text-white">{stats.username}</div>
-                {stats.city && <div className="text-sm text-gray-400">📍 {stats.city}</div>}
+                <div className="text-xl font-black text-gray-900 dark:text-white">{stats.username}</div>
+                {stats.city && <div className="text-sm text-gray-600 dark:text-gray-400">📍 {stats.city}</div>}
                 <div className="flex items-center gap-2 mt-1">
                   {streak > 1 && (
                     <span className="text-xs px-2 py-0.5 rounded-full bg-orange-500/20 border border-orange-500/30 text-orange-400">
@@ -126,7 +126,7 @@ export default function ProfileModal({ stats, history, streak, coins, onClose }:
               </div>
               <div className="text-right">
                 <div className="text-3xl font-black text-amber-400">{stats.elo}</div>
-                <div className="text-xs text-gray-400 uppercase tracking-wider">ELO</div>
+                <div className="text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wider">ELO</div>
               </div>
             </div>
           </div>
@@ -140,22 +140,22 @@ export default function ProfileModal({ stats, history, streak, coins, onClose }:
                 { label: 'Draws',  value: stats.draws,       color: 'text-blue-400'  },
                 { label: 'Total',  value: stats.gamesPlayed, color: 'text-gray-300'  },
               ].map(s => (
-                <div key={s.label} className="text-center p-2.5 rounded-2xl bg-white/5 border border-white/5">
+                <div key={s.label} className="text-center p-2.5 rounded-2xl bg-gray-50 dark:bg-white/5 border border-gray-100 dark:border-white/5">
                   <div className={`text-2xl font-bold ${s.color}`}>{s.value}</div>
-                  <div className="text-[10px] text-gray-500 uppercase tracking-wider">{s.label}</div>
+                  <div className="text-[10px] text-gray-600 dark:text-gray-500 uppercase tracking-wider">{s.label}</div>
                 </div>
               ))}
             </div>
 
             {/* Win rate bar */}
             <div>
-              <div className="flex justify-between text-xs text-gray-400 mb-1.5">
+              <div className="flex justify-between text-xs text-gray-500 dark:text-gray-400 mb-1.5">
                 <span>Win rate</span>
                 <span className={`font-semibold ${winRate >= 60 ? 'text-green-400' : winRate >= 40 ? 'text-yellow-400' : 'text-red-400'}`}>
                   {winRate}%
                 </span>
               </div>
-              <div className="h-2 rounded-full bg-white/10">
+              <div className="h-2 rounded-full bg-gray-200 dark:bg-white/10">
                 <motion.div
                   initial={{ width: 0 }}
                   animate={{ width: `${winRate}%` }}
@@ -166,10 +166,10 @@ export default function ProfileModal({ stats, history, streak, coins, onClose }:
             </div>
 
             {/* ELO trend */}
-            <div className="p-4 rounded-2xl bg-white/5 border border-white/10">
+            <div className="p-4 rounded-2xl bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10">
               <div className="flex items-center gap-2 mb-3">
                 <Trophy size={14} className="text-amber-400" />
-                <span className="text-sm font-semibold text-white">Rating History</span>
+                <span className="text-sm font-semibold text-gray-900 dark:text-white">Rating History</span>
               </div>
               <EloSparkline history={history} />
             </div>
@@ -177,7 +177,7 @@ export default function ProfileModal({ stats, history, streak, coins, onClose }:
             {/* Game history */}
             {history.length > 0 && (
               <div>
-                <div className="text-sm font-semibold text-white mb-2">Recent Games</div>
+                <div className="text-sm font-semibold text-gray-900 dark:text-white mb-2">Recent Games</div>
                 <div className="space-y-1.5 max-h-52 overflow-y-auto pr-1">
                   {history.slice(0, 15).map(g => {
                     const rc = g.result === 'win'
@@ -197,20 +197,20 @@ export default function ProfileModal({ stats, history, streak, coins, onClose }:
                       : null;
 
                     return (
-                      <div key={g.id} className="flex items-center gap-2 px-3 py-2 rounded-xl bg-white/5">
+                      <div key={g.id} className="flex items-center gap-2 px-3 py-2 rounded-xl bg-gray-50 dark:bg-white/5">
                         <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-lg uppercase min-w-[18px] text-center ${rc}`}>
                           {g.result[0].toUpperCase()}
                         </span>
                         <span className="text-xs">{icon}</span>
-                        <span className="flex-1 text-xs text-gray-300 truncate">vs {g.opponent}</span>
+                        <span className="flex-1 text-xs text-gray-700 dark:text-gray-300 truncate">vs {g.opponent}</span>
                         {eloDelta !== null && (
                           <span className={`text-[10px] font-mono font-semibold flex items-center gap-0.5 ${eloDelta >= 0 ? 'text-green-400' : 'text-red-400'}`}>
                             {eloDelta >= 0 ? <TrendingUp size={9} /> : <TrendingDown size={9} />}
                             {eloDelta >= 0 ? '+' : ''}{eloDelta}
                           </span>
                         )}
-                        <span className="text-[10px] text-gray-600">{dur}</span>
-                        <span className="text-[10px] text-gray-600">{date}</span>
+                        <span className="text-[10px] text-gray-500 dark:text-gray-600">{dur}</span>
+                        <span className="text-[10px] text-gray-500 dark:text-gray-600">{date}</span>
                       </div>
                     );
                   })}
@@ -219,7 +219,7 @@ export default function ProfileModal({ stats, history, streak, coins, onClose }:
             )}
 
             {history.length === 0 && (
-              <div className="text-center py-6 text-gray-500">
+              <div className="text-center py-6 text-gray-600 dark:text-gray-500">
                 <div className="text-3xl mb-2">🎮</div>
                 Play your first game to start tracking your progress!
               </div>

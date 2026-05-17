@@ -23,11 +23,11 @@ export default function DailyChallenges() {
   };
 
   return (
-    <div className="rounded-2xl border border-white/10 bg-white/5 overflow-hidden">
-      <div className="px-5 pt-4 pb-3 flex items-center justify-between border-b border-white/10">
+    <div className="rounded-2xl border border-gray-200 dark:border-white/10 bg-white dark:bg-white/5 overflow-hidden">
+      <div className="px-5 pt-4 pb-3 flex items-center justify-between border-b border-gray-200 dark:border-white/10">
         <div>
-          <h3 className="font-bold text-white text-sm">Daily Challenges</h3>
-          <p className="text-xs text-gray-500 mt-0.5">Resets at midnight</p>
+          <h3 className="font-bold text-gray-900 dark:text-white text-sm">Daily Challenges</h3>
+          <p className="text-xs text-gray-600 dark:text-gray-500 mt-0.5">Resets at midnight</p>
         </div>
         <div className="text-xs text-amber-400 font-mono">
           {new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
@@ -48,7 +48,7 @@ export default function DailyChallenges() {
             >
               <span className="text-xl flex-shrink-0">{c.emoji}</span>
               <div className="flex-1 min-w-0">
-                <div className="text-xs text-white font-medium leading-tight">{c.text}</div>
+                <div className="text-xs text-gray-900 dark:text-white font-medium leading-tight">{c.text}</div>
                 <div className="flex items-center gap-2 mt-0.5">
                   <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-semibold uppercase ${col.badge}`}>{diff}</span>
                   <span className="text-[10px] text-amber-400 font-semibold">+{c.coins} coins</span>
@@ -57,7 +57,7 @@ export default function DailyChallenges() {
               {p.completed ? (
                 <div className="text-green-400 text-lg flex-shrink-0">✓</div>
               ) : (
-                <div className="text-gray-600 text-lg flex-shrink-0">○</div>
+                <div className="text-gray-400 dark:text-gray-600 text-lg flex-shrink-0">○</div>
               )}
             </motion.div>
           );

@@ -50,7 +50,7 @@ export default function UsernameModal({
       <motion.div
         initial={{ scale: 0.9, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
-        className="relative bg-gradient-to-br from-gray-900 to-gray-800 rounded-3xl p-6 sm:p-8 border border-white/10 shadow-2xl max-w-sm w-full max-h-[90vh] overflow-y-auto"
+        className="relative bg-white dark:bg-gray-900 rounded-3xl p-6 sm:p-8 border border-gray-200 dark:border-white/10 shadow-2xl max-w-sm w-full max-h-[90vh] overflow-y-auto"
       >
         <div className="flex justify-center mb-6">
           <div className="p-4 bg-amber-500/20 rounded-2xl">
@@ -58,10 +58,10 @@ export default function UsernameModal({
           </div>
         </div>
 
-        <h2 className="text-2xl font-bold text-white text-center mb-2">
+        <h2 className="text-2xl font-bold text-gray-900 dark:text-white text-center mb-2">
           {required ? 'Welcome to CheckMate Arena!' : 'Change Username'}
         </h2>
-        <p className="text-gray-400 text-center text-sm mb-6">
+        <p className="text-gray-500 dark:text-gray-400 text-center text-sm mb-6">
           {required
             ? 'Choose a username to track your stats on the leaderboard'
             : 'Update your display name'}
@@ -74,14 +74,14 @@ export default function UsernameModal({
           placeholder="Enter username..."
           autoFocus
           onKeyDown={e => e.key === 'Enter' && handleSave()}
-          className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-amber-400 text-center text-lg mb-3"
+          className="w-full px-4 py-3 bg-gray-100 dark:bg-white/10 border border-gray-300 dark:border-white/20 rounded-xl text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:border-amber-400 text-center text-lg mb-3"
         />
 
         <div className="relative mb-6">
           <select
             value={city}
             onChange={e => setCityState(e.target.value)}
-            className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white focus:outline-none focus:border-amber-400 text-sm appearance-none cursor-pointer"
+            className="w-full px-4 py-3 bg-gray-100 dark:bg-white/10 border border-gray-300 dark:border-white/20 rounded-xl text-gray-900 dark:text-white focus:outline-none focus:border-amber-400 text-sm appearance-none cursor-pointer"
             style={{ colorScheme: 'dark' }}
           >
             <option value="">No city</option>
@@ -89,14 +89,14 @@ export default function UsernameModal({
               <option key={c} value={c}>{c}</option>
             ))}
           </select>
-          <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-gray-400 text-xs">▼</div>
+          <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-gray-500 dark:text-gray-400 text-xs">▼</div>
         </div>
 
         <div className="flex gap-3">
           {!required && (
             <button
               onClick={onClose}
-              className="flex-1 py-3 rounded-xl bg-white/10 hover:bg-white/20 text-white transition-colors"
+              className="flex-1 py-3 rounded-xl bg-gray-100 dark:bg-white/10 hover:bg-gray-200 dark:hover:bg-white/20 text-gray-900 dark:text-white transition-colors"
             >
               Cancel
             </button>

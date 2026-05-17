@@ -579,7 +579,7 @@ export default function GamePage({
           {/* Back button */}
           <button
             onClick={onExit}
-            className="flex items-center gap-2 text-gray-400 hover:text-white transition-colors text-sm"
+            className="flex items-center gap-2 text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors text-sm"
           >
             <ArrowLeft size={16} />
             Back to Menu
@@ -587,11 +587,11 @@ export default function GamePage({
 
           {/* Room code for online */}
           {mode === 'online' && roomCode && (
-            <div className="bg-white/5 rounded-2xl p-4 border border-white/10">
-              <div className="text-xs text-gray-400 mb-2 uppercase tracking-wider">Room Code</div>
+            <div className="bg-white dark:bg-white/5 rounded-2xl p-4 border border-gray-200 dark:border-white/10">
+              <div className="text-xs text-gray-500 dark:text-gray-400 mb-2 uppercase tracking-wider">Room Code</div>
               <div className="flex items-center gap-2">
                 <span className="font-mono text-2xl font-bold text-amber-400 tracking-widest">{roomCode}</span>
-                <button onClick={copyRoomCode} className="text-gray-400 hover:text-white transition-colors">
+                <button onClick={copyRoomCode} className="text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors">
                   {copied ? <CheckIcon size={16} className="text-green-400" /> : <Copy size={16} />}
                 </button>
               </div>
@@ -627,8 +627,8 @@ export default function GamePage({
 
           {/* Roulette widget */}
           {mode === 'roulette' && (
-            <div className="bg-white/5 rounded-2xl p-4 border border-white/10">
-              <div className="text-xs text-gray-400 mb-2 uppercase tracking-wider">Roulette</div>
+            <div className="bg-white dark:bg-white/5 rounded-2xl p-4 border border-gray-200 dark:border-white/10">
+              <div className="text-xs text-gray-500 dark:text-gray-400 mb-2 uppercase tracking-wider">Roulette</div>
               {rouletteSpinning ? (
                 <motion.div
                   animate={{ rotate: 360 }}
@@ -645,7 +645,7 @@ export default function GamePage({
                   <div className={`text-xs font-semibold ${
                     rouletteEffect === 'extra_turn' ? 'text-green-400' :
                     rouletteEffect === 'skip' ? 'text-red-400' :
-                    'text-gray-300'
+                    'text-gray-700 dark:text-gray-300'
                   }`}>
                     {rouletteEffect === 'normal' ? 'Normal turn' :
                      rouletteEffect === 'extra_turn' ? 'Extra turn!' :
@@ -653,15 +653,15 @@ export default function GamePage({
                   </div>
                 </div>
               ) : (
-                <div className="text-gray-500 text-xs text-center">Waiting...</div>
+                <div className="text-gray-600 dark:text-gray-500 text-xs text-center">Waiting...</div>
               )}
             </div>
           )}
 
           {/* Mines info widget */}
           {mode === 'mines' && (
-            <div className="bg-white/5 rounded-2xl p-4 border border-white/10">
-              <div className="text-xs text-gray-400 mb-1 uppercase tracking-wider">Mines Mode</div>
+            <div className="bg-white dark:bg-white/5 rounded-2xl p-4 border border-gray-200 dark:border-white/10">
+              <div className="text-xs text-gray-500 dark:text-gray-400 mb-1 uppercase tracking-wider">Mines Mode</div>
               <div className="text-xs text-orange-400">
                 💣 {mines.size - triggeredMines.size} mines hidden
               </div>
@@ -674,9 +674,9 @@ export default function GamePage({
           )}
 
           {/* Move history / replay — fixed height so sidebar never grows */}
-          <div className="bg-white/5 rounded-2xl p-4 border border-white/10 flex flex-col" style={{ height: '290px' }}>
+          <div className="bg-white dark:bg-white/5 rounded-2xl p-4 border border-gray-200 dark:border-white/10 flex flex-col" style={{ height: '290px' }}>
               <div className="flex items-center justify-between mb-2">
-                <div className="text-xs text-gray-400 uppercase tracking-wider">Move History</div>
+                <div className="text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wider">Move History</div>
                 {replayIndex !== null && (
                   <button
                     onClick={() => setReplayIndex(null)}
@@ -686,9 +686,9 @@ export default function GamePage({
                   </button>
                 )}
               </div>
-              <div className="text-center text-xs font-mono text-gray-300 mb-2">
+              <div className="text-center text-xs font-mono text-gray-700 dark:text-gray-300 mb-2">
                 {replayIndex !== null ? replayIndex : gameState.moveHistory.length}
-                <span className="text-gray-600"> / {gameState.moveHistory.length}</span>
+                <span className="text-gray-400 dark:text-gray-600"> / {gameState.moveHistory.length}</span>
               </div>
               {/* Navigation buttons */}
               <div className="flex items-center justify-center gap-1 mb-2">
@@ -696,13 +696,13 @@ export default function GamePage({
                   onClick={() => setReplayIndex(0)}
                   disabled={(replayIndex ?? gameState.moveHistory.length) === 0}
                   title="First move"
-                  className="px-2 py-1 rounded-lg text-xs bg-white/5 hover:bg-white/15 text-gray-300 hover:text-white transition-colors disabled:opacity-30"
+                  className="px-2 py-1 rounded-lg text-xs bg-gray-100 dark:bg-white/5 hover:bg-gray-200 dark:hover:bg-white/15 text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition-colors disabled:opacity-30"
                 >⏮</button>
                 <button
                   onClick={() => setReplayIndex(prev => Math.max(0, (prev ?? gameState.moveHistory.length) - 1))}
                   disabled={(replayIndex ?? gameState.moveHistory.length) === 0}
                   title="Previous move"
-                  className="px-2 py-1 rounded-lg text-xs bg-white/5 hover:bg-white/15 text-gray-300 hover:text-white transition-colors disabled:opacity-30"
+                  className="px-2 py-1 rounded-lg text-xs bg-gray-100 dark:bg-white/5 hover:bg-gray-200 dark:hover:bg-white/15 text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition-colors disabled:opacity-30"
                 >◀</button>
                 <button
                   onClick={() => {
@@ -713,13 +713,13 @@ export default function GamePage({
                   }}
                   disabled={replayIndex === null}
                   title="Next move"
-                  className="px-2 py-1 rounded-lg text-xs bg-white/5 hover:bg-white/15 text-gray-300 hover:text-white transition-colors disabled:opacity-30"
+                  className="px-2 py-1 rounded-lg text-xs bg-gray-100 dark:bg-white/5 hover:bg-gray-200 dark:hover:bg-white/15 text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition-colors disabled:opacity-30"
                 >▶</button>
                 <button
                   onClick={() => setReplayIndex(null)}
                   disabled={replayIndex === null}
                   title="Latest (live)"
-                  className="px-2 py-1 rounded-lg text-xs bg-white/5 hover:bg-white/15 text-gray-300 hover:text-white transition-colors disabled:opacity-30"
+                  className="px-2 py-1 rounded-lg text-xs bg-gray-100 dark:bg-white/5 hover:bg-gray-200 dark:hover:bg-white/15 text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition-colors disabled:opacity-30"
                 >⏭</button>
               </div>
               {/* Move list */}
@@ -727,10 +727,10 @@ export default function GamePage({
                 <button
                   onClick={() => setReplayIndex(0)}
                   className={`w-full flex items-center gap-2 px-2 py-1 rounded-lg text-xs transition-colors ${
-                    replayIndex === 0 ? 'bg-amber-500/20 text-amber-400' : 'hover:bg-white/5 text-gray-600'
+                    replayIndex === 0 ? 'bg-amber-500/20 text-amber-400' : 'hover:bg-gray-100 dark:hover:bg-white/5 text-gray-500 dark:text-gray-600'
                   }`}
                 >
-                  <span className="w-6 text-right shrink-0 text-gray-600">0.</span>
+                  <span className="w-6 text-right shrink-0 text-gray-500 dark:text-gray-600">0.</span>
                   <span>Start</span>
                 </button>
                 {gameState.moveHistory.map((move, i) => {
@@ -741,10 +741,10 @@ export default function GamePage({
                       key={i}
                       onClick={() => setReplayIndex(i + 1)}
                       className={`w-full flex items-center gap-1.5 px-2 py-1 rounded-lg text-xs transition-colors ${
-                        isActive ? 'bg-amber-500/20 text-amber-400' : 'hover:bg-white/5 text-gray-400'
+                        isActive ? 'bg-amber-500/20 text-amber-400' : 'hover:bg-gray-100 dark:hover:bg-white/5 text-gray-600 dark:text-gray-400'
                       }`}
                     >
-                      <span className="w-6 text-right shrink-0 text-gray-600">{i + 1}.</span>
+                      <span className="w-6 text-right shrink-0 text-gray-500 dark:text-gray-600">{i + 1}.</span>
                       <div className={`w-2 h-2 rounded-full shrink-0 ${isRed ? 'bg-red-400' : 'bg-gray-300'}`} />
                       <span className="font-mono text-[11px] flex-1 text-left">
                         {colLetter(move.from[1])}{8 - move.from[0]}→{colLetter(move.to[1])}{8 - move.to[0]}
@@ -765,7 +765,7 @@ export default function GamePage({
             {/* Player labels */}
             <div className="flex items-center gap-3">
               <div className="w-5 h-5 rounded-full bg-gradient-to-br from-gray-600 to-gray-900 border border-gray-400" />
-              <span className="text-gray-300 text-sm">
+              <span className="text-gray-700 dark:text-gray-300 text-sm">
                 {(mode === 'ai' || mode === 'mines' || mode === 'roulette') && playerColor === 'black' ? username :
                  mode === 'online' && playerColor === 'black' ? username :
                  mode === 'local' ? 'Black' :
@@ -781,8 +781,8 @@ export default function GamePage({
               {playerTimes && (
                 <span className={`ml-1 font-mono text-sm font-bold tabular-nums px-2 py-0.5 rounded-lg ${
                   gameState.currentPlayer === 'black' && gameState.status === 'playing'
-                    ? playerTimes.black <= 10 ? 'bg-red-500/20 text-red-400 animate-pulse' : 'bg-white/10 text-white'
-                    : 'text-gray-500'
+                    ? playerTimes.black <= 10 ? 'bg-red-500/20 text-red-400 animate-pulse' : 'bg-gray-100 dark:bg-white/10 text-gray-900 dark:text-white'
+                    : 'text-gray-500 dark:text-gray-500'
                 }`}>
                   {formatTime(playerTimes.black)}
                 </span>
@@ -802,7 +802,7 @@ export default function GamePage({
 
             <div className="flex items-center gap-3">
               <div className="w-5 h-5 rounded-full bg-gradient-to-br from-red-400 to-red-700 border border-red-300" />
-              <span className="text-gray-300 text-sm">
+              <span className="text-gray-700 dark:text-gray-300 text-sm">
                 {(mode === 'ai' || mode === 'mines' || mode === 'roulette') && playerColor === 'red' ? username :
                  mode === 'online' && playerColor === 'red' ? username :
                  mode === 'local' ? 'Red' :
@@ -818,8 +818,8 @@ export default function GamePage({
               {playerTimes && (
                 <span className={`ml-1 font-mono text-sm font-bold tabular-nums px-2 py-0.5 rounded-lg ${
                   gameState.currentPlayer === 'red' && gameState.status === 'playing'
-                    ? playerTimes.red <= 10 ? 'bg-red-500/20 text-red-400 animate-pulse' : 'bg-white/10 text-white'
-                    : 'text-gray-500'
+                    ? playerTimes.red <= 10 ? 'bg-red-500/20 text-red-400 animate-pulse' : 'bg-gray-100 dark:bg-white/10 text-gray-900 dark:text-white'
+                    : 'text-gray-500 dark:text-gray-500'
                 }`}>
                   {formatTime(playerTimes.red)}
                 </span>

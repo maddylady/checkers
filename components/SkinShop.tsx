@@ -49,13 +49,13 @@ export default function SkinShop({ onClose, onCoinsChange }: Props) {
             <motion.div
                 initial={{ scale: 0.9, opacity: 0 }}
                 animate={{ scale: 1, opacity: 1 }}
-                className="relative bg-gray-900 rounded-3xl p-6 border border-white/10 shadow-2xl max-w-md w-full max-h-[80vh] overflow-y-auto"
+                className="relative bg-white dark:bg-gray-900 rounded-3xl p-6 border border-gray-200 dark:border-white/10 shadow-2xl max-w-md w-full max-h-[80vh] overflow-y-auto"
             >
                 <div className="flex items-center justify-between mb-6">
-                    <h2 className="text-xl font-bold text-white">🎨 Skin Shop</h2>
+                    <h2 className="text-xl font-bold text-gray-900 dark:text-white">🎨 Skin Shop</h2>
                     <div className="flex items-center gap-2">
                         <span className="text-amber-400">🪙 {coins}</span>
-                        <button onClick={onClose} className="text-gray-400 hover:text-white ml-3">✕</button>
+                        <button onClick={onClose} className="text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white ml-3">✕</button>
                     </div>
                 </div>
 
@@ -72,15 +72,15 @@ export default function SkinShop({ onClose, onCoinsChange }: Props) {
                                 className={`flex items-center gap-4 p-4 rounded-2xl border transition-all ${
                                     isActive
                                         ? 'border-amber-500/50 bg-amber-500/10'
-                                        : 'border-white/10 bg-white/5'
+                                        : 'border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-white/5'
                                 }`}
                             >
                                 <div className="text-3xl">{skin.redPiece}</div>
                                 <div className="text-3xl">{skin.blackPiece}</div>
                                 <div className="flex-1">
-                                    <div className="text-white font-semibold">{skin.name}</div>
+                                    <div className="text-gray-900 dark:text-white font-semibold">{skin.name}</div>
                                     {skin.unlockCondition && (
-                                        <div className="text-xs text-gray-500">{skin.unlockCondition}</div>
+                                        <div className="text-xs text-gray-500 dark:text-gray-500">{skin.unlockCondition}</div>
                                     )}
                                 </div>
                                 {isActive ? (
@@ -88,7 +88,7 @@ export default function SkinShop({ onClose, onCoinsChange }: Props) {
                                 ) : isOwned ? (
                                     <button
                                         onClick={() => handleEquip(skin.id)}
-                                        className="px-3 py-1 text-xs bg-white/10 hover:bg-white/20 text-white rounded-lg"
+                                        className="px-3 py-1 text-xs bg-gray-100 dark:bg-white/10 hover:bg-gray-200 dark:hover:bg-white/20 text-gray-900 dark:text-white rounded-lg"
                                     >
                                         Equip
                                     </button>

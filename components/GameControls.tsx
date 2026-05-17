@@ -42,8 +42,8 @@ export default function GameControls({
   return (
     <div className="flex flex-col gap-3 w-full max-w-xs">
       {/* Turn indicator */}
-      <div className="bg-white/5 backdrop-blur-sm rounded-2xl p-4 border border-white/10">
-        <div className="text-xs text-gray-400 uppercase tracking-wider mb-2">Current Turn</div>
+      <div className="bg-white dark:bg-white/5 backdrop-blur-sm rounded-2xl p-4 border border-gray-200 dark:border-white/10">
+        <div className="text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-2">Current Turn</div>
         <div className="flex items-center gap-3">
           <motion.div
             animate={{
@@ -57,7 +57,7 @@ export default function GameControls({
             }`}
           />
           <div>
-            <div className="font-bold text-white capitalize">
+            <div className="font-bold text-gray-900 dark:text-white capitalize">
               {currentPlayer === playerColor
                 ? 'Your turn'
                 : (mode === 'ai' || mode === 'mines' || mode === 'roulette') && thinking
@@ -75,8 +75,8 @@ export default function GameControls({
         {/* Turn timer */}
         {turnTimer !== undefined && isPlaying && (
           <div className="mt-3 flex items-center gap-2">
-            <Clock size={14} className="text-gray-400" />
-            <div className="flex-1 bg-white/10 rounded-full h-2">
+            <Clock size={14} className="text-gray-500 dark:text-gray-400" />
+            <div className="flex-1 bg-gray-100 dark:bg-white/10 rounded-full h-2">
               <motion.div
                 className={`h-full rounded-full transition-colors ${
                   turnTimer > turnTimerMax * 0.5 ? 'bg-green-400' : turnTimer > turnTimerMax * 0.17 ? 'bg-yellow-400' : 'bg-red-400'
@@ -84,7 +84,7 @@ export default function GameControls({
                 style={{ width: `${(turnTimer / turnTimerMax) * 100}%` }}
               />
             </div>
-            <span className="text-xs text-gray-300 tabular-nums w-6">{turnTimer}s</span>
+            <span className="text-xs text-gray-600 dark:text-gray-300 tabular-nums w-6">{turnTimer}s</span>
           </div>
         )}
 
@@ -97,8 +97,8 @@ export default function GameControls({
       </div>
 
       {/* Captured pieces */}
-      <div className="bg-white/5 backdrop-blur-sm rounded-2xl p-4 border border-white/10">
-        <div className="text-xs text-gray-400 uppercase tracking-wider mb-3">Captured</div>
+      <div className="bg-white dark:bg-white/5 backdrop-blur-sm rounded-2xl p-4 border border-gray-200 dark:border-white/10">
+        <div className="text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-3">Captured</div>
         <div className="flex justify-between">
           <div className="flex flex-col items-center gap-1">
             <div className="flex gap-1 flex-wrap max-w-[80px]">
@@ -109,7 +109,7 @@ export default function GameControls({
                 />
               ))}
             </div>
-            <span className="text-xs text-gray-400">Red: {captured.red}</span>
+            <span className="text-xs text-gray-500 dark:text-gray-400">Red: {captured.red}</span>
           </div>
           <div className="flex flex-col items-center gap-1">
             <div className="flex gap-1 flex-wrap max-w-[80px] justify-end">
@@ -120,22 +120,22 @@ export default function GameControls({
                 />
               ))}
             </div>
-            <span className="text-xs text-gray-400">Black: {captured.black}</span>
+            <span className="text-xs text-gray-500 dark:text-gray-400">Black: {captured.black}</span>
           </div>
         </div>
       </div>
 
       {/* Move count */}
-      <div className="bg-white/5 backdrop-blur-sm rounded-2xl p-3 border border-white/10 flex justify-between items-center">
-        <span className="text-xs text-gray-400">Moves played</span>
-        <span className="text-white font-bold tabular-nums">{moveHistory.length}</span>
+      <div className="bg-white dark:bg-white/5 backdrop-blur-sm rounded-2xl p-3 border border-gray-200 dark:border-white/10 flex justify-between items-center">
+        <span className="text-xs text-gray-500 dark:text-gray-400">Moves played</span>
+        <span className="text-gray-900 dark:text-white font-bold tabular-nums">{moveHistory.length}</span>
       </div>
 
       {/* Opponent info */}
       {opponentName && (
-        <div className="bg-white/5 backdrop-blur-sm rounded-2xl p-3 border border-white/10">
-          <div className="text-xs text-gray-400">Playing against</div>
-          <div className="text-white font-semibold mt-1">{opponentName}</div>
+        <div className="bg-white dark:bg-white/5 backdrop-blur-sm rounded-2xl p-3 border border-gray-200 dark:border-white/10">
+          <div className="text-xs text-gray-500 dark:text-gray-400">Playing against</div>
+          <div className="text-gray-900 dark:text-white font-semibold mt-1">{opponentName}</div>
         </div>
       )}
 
@@ -146,7 +146,7 @@ export default function GameControls({
             whileHover={{ scale: 1.03 }}
             whileTap={{ scale: 0.97 }}
             onClick={onRestart}
-            className="flex-1 flex items-center justify-center gap-2 py-2 px-3 rounded-xl bg-white/10 hover:bg-white/20 text-white text-sm transition-colors border border-white/10"
+            className="flex-1 flex items-center justify-center gap-2 py-2 px-3 rounded-xl bg-gray-100 dark:bg-white/10 hover:bg-gray-200 dark:hover:bg-white/20 text-gray-900 dark:text-white text-sm transition-colors border border-gray-200 dark:border-white/10"
           >
             <RotateCcw size={14} />
             Restart

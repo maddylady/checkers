@@ -147,7 +147,7 @@ export default function Navbar({ theme, onThemeToggle, username, onUsernameChang
 
   return (
     <>
-      <nav className="fixed top-0 left-0 right-0 z-40 flex items-center justify-between px-6 py-3 backdrop-blur-md bg-black/30 border-b border-white/10">
+      <nav className="fixed top-0 left-0 right-0 z-40 flex items-center justify-between px-6 py-3 backdrop-blur-md bg-white/90 border-b border-gray-200 dark:bg-black/30 dark:border-white/10">
         {/* Logo */}
         <button
           onClick={onLogoClick}
@@ -156,13 +156,13 @@ export default function Navbar({ theme, onThemeToggle, username, onUsernameChang
           <div className="w-8 h-8 bg-gradient-to-br from-amber-400 to-red-600 rounded-lg flex items-center justify-center">
             <span className="text-lg">♟</span>
           </div>
-          <span className="font-bold text-white text-lg hidden sm:block">
-            CheckMate <span className="text-amber-400">Arena</span>
+          <span className="font-bold text-gray-900 dark:text-white text-lg hidden sm:block">
+            CheckMate <span className="text-amber-500">Arena</span>
           </span>
         </button>
 
         {/* Center */}
-        <div className="hidden md:flex items-center gap-1 text-sm text-gray-400">
+        <div className="hidden md:flex items-center gap-1 text-sm text-gray-500 dark:text-gray-400">
           <Zap size={12} className="text-amber-400" />
           <span>Real-time multiplayer strategy</span>
         </div>
@@ -173,7 +173,7 @@ export default function Navbar({ theme, onThemeToggle, username, onUsernameChang
           {!googleUser?.isGoogle && username && (
             <button
               onClick={onProfileOpen}
-              className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-xl bg-white/10 hover:bg-white/20 transition-colors text-sm text-gray-300"
+              className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-xl bg-gray-100 hover:bg-gray-200 dark:bg-white/10 dark:hover:bg-white/20 transition-colors text-sm text-gray-700 dark:text-gray-300"
             >
               <div className="w-5 h-5 rounded-full bg-gradient-to-br from-amber-400 to-red-500 flex items-center justify-center text-xs text-white font-bold">
                 {username[0].toUpperCase()}
@@ -184,7 +184,7 @@ export default function Navbar({ theme, onThemeToggle, username, onUsernameChang
           {!googleUser?.isGoogle && !username && (
             <button
               onClick={onUsernameChange}
-              className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-xl bg-white/10 hover:bg-white/20 transition-colors text-sm text-gray-300"
+              className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-xl bg-gray-100 hover:bg-gray-200 dark:bg-white/10 dark:hover:bg-white/20 transition-colors text-sm text-gray-700 dark:text-gray-300"
             >
               <div className="w-5 h-5 rounded-full bg-gradient-to-br from-amber-400 to-red-500 flex items-center justify-center text-xs text-white font-bold">?</div>
               <span>Set name</span>
@@ -196,7 +196,7 @@ export default function Navbar({ theme, onThemeToggle, username, onUsernameChang
             <div className="relative">
               <button
                 onClick={() => setShowUserMenu(v => !v)}
-                className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-white/10 hover:bg-white/20 transition-colors text-sm text-white"
+                className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-gray-100 hover:bg-gray-200 dark:bg-white/10 dark:hover:bg-white/20 transition-colors text-sm text-gray-900 dark:text-white"
               >
                 {googleUser.avatar ? (
                   // eslint-disable-next-line @next/next/no-img-element
@@ -215,21 +215,21 @@ export default function Navbar({ theme, onThemeToggle, username, onUsernameChang
                     initial={{ opacity: 0, y: -8, scale: 0.95 }}
                     animate={{ opacity: 1, y: 0, scale: 1 }}
                     exit={{ opacity: 0, y: -8, scale: 0.95 }}
-                    className="absolute right-0 top-10 bg-gray-900 border border-white/10 rounded-2xl p-2 shadow-2xl w-48 z-50"
+                    className="absolute right-0 top-10 bg-white dark:bg-gray-900 border border-gray-200 dark:border-white/10 rounded-2xl p-2 shadow-2xl w-48 z-50"
                   >
-                    <div className="px-3 py-2 text-xs text-gray-400 border-b border-white/10 mb-1">
+                    <div className="px-3 py-2 text-xs text-gray-500 dark:text-gray-400 border-b border-gray-100 dark:border-white/10 mb-1">
                       Signed in with Google
                     </div>
                     <button
                       onClick={() => { setShowUserMenu(false); onProfileOpen?.(); }}
-                      className="w-full flex items-center gap-2 px-3 py-2 rounded-xl text-sm text-gray-300 hover:bg-white/10 hover:text-white transition-colors"
+                      className="w-full flex items-center gap-2 px-3 py-2 rounded-xl text-sm text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-white/10 hover:text-gray-900 dark:hover:text-white transition-colors"
                     >
                       <User size={14} />
                       My Profile
                     </button>
                     <button
                       onClick={handleSignOut}
-                      className="w-full flex items-center gap-2 px-3 py-2 rounded-xl text-sm text-gray-300 hover:bg-white/10 hover:text-white transition-colors"
+                      className="w-full flex items-center gap-2 px-3 py-2 rounded-xl text-sm text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-white/10 hover:text-gray-900 dark:hover:text-white transition-colors"
                     >
                       <LogOut size={14} />
                       Sign out
@@ -267,7 +267,7 @@ export default function Navbar({ theme, onThemeToggle, username, onUsernameChang
           {/* Theme toggle */}
           <button
             onClick={onThemeToggle}
-            className="p-2 rounded-xl bg-white/10 hover:bg-white/20 transition-colors text-gray-300"
+            className="p-2 rounded-xl bg-gray-100 hover:bg-gray-200 dark:bg-white/10 dark:hover:bg-white/20 transition-colors text-gray-600 dark:text-gray-300"
           >
             {theme === 'dark' ? <Sun size={16} /> : <Moon size={16} />}
           </button>
@@ -277,7 +277,7 @@ export default function Navbar({ theme, onThemeToggle, username, onUsernameChang
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
               onClick={onShopOpen}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white/10 hover:bg-white/20 text-white text-sm font-semibold"
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-gray-100 hover:bg-gray-200 dark:bg-white/10 dark:hover:bg-white/20 text-gray-700 dark:text-white text-sm font-semibold"
           >
             <ShoppingBag size={14} />
             <span className="hidden sm:block">Shop</span>

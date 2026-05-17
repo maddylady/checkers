@@ -233,8 +233,8 @@ export default function ModeSelector({ onSelect, onStepChange, rulesVariant = 'a
         {step === 'mode' && (
           <motion.div key="mode" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }} className="space-y-4">
             <div className="text-center mb-8">
-              <h2 className="text-2xl font-bold text-white mb-2">Choose Game Mode</h2>
-              <p className="text-gray-400">How do you want to play?</p>
+              <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">Choose Game Mode</h2>
+              <p className="text-gray-500 dark:text-gray-400">How do you want to play?</p>
             </div>
             {modes.map(({ mode, icon, title, desc, color, badge }) => (
               <motion.button
@@ -246,17 +246,17 @@ export default function ModeSelector({ onSelect, onStepChange, rulesVariant = 'a
                   else if (mode === 'online') changeStep('online');
                   else { setPendingMode('local'); setPendingBot(null); changeStep('pregame'); }
                 }}
-                className="w-full flex items-center gap-4 p-5 rounded-2xl bg-white/5 hover:bg-white/10 border border-white/10 hover:border-white/20 transition-all group text-left"
+                className="w-full flex items-center gap-4 p-5 rounded-2xl bg-white dark:bg-white/5 hover:bg-gray-50 dark:hover:bg-white/10 border border-gray-100 dark:border-white/10 hover:border-gray-300 dark:hover:border-white/20 transition-all group text-left"
               >
                 <div className={`p-3 rounded-xl bg-gradient-to-br ${color} text-white flex-shrink-0`}>{icon}</div>
                 <div className="flex-1">
                   <div className="flex items-center gap-2 mb-1">
-                    <span className="font-bold text-white text-lg">{title}</span>
-                    <span className="text-xs px-2 py-0.5 rounded-full bg-white/10 text-gray-400">{badge}</span>
+                    <span className="font-bold text-gray-900 dark:text-white text-lg">{title}</span>
+                    <span className="text-xs px-2 py-0.5 rounded-full bg-gray-100 dark:bg-white/10 text-gray-500 dark:text-gray-400">{badge}</span>
                   </div>
-                  <p className="text-gray-400 text-sm">{desc}</p>
+                  <p className="text-gray-500 dark:text-gray-400 text-sm">{desc}</p>
                 </div>
-                <ChevronRight size={20} className="text-gray-500 group-hover:text-white transition-colors" />
+                <ChevronRight size={20} className="text-gray-400 dark:text-gray-500 group-hover:text-gray-900 dark:group-hover:text-white transition-colors" />
               </motion.button>
             ))}
           </motion.div>
@@ -266,8 +266,8 @@ export default function ModeSelector({ onSelect, onStepChange, rulesVariant = 'a
         {step === 'bots' && (
           <motion.div key="bots" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }}>
             <div className="text-center mb-5">
-              <h2 className="text-2xl font-bold text-white mb-1">Pick Your Opponent</h2>
-              <p className="text-gray-400 text-sm">22 characters · 3 skill tiers</p>
+              <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-1">Pick Your Opponent</h2>
+              <p className="text-gray-500 dark:text-gray-400 text-sm">22 characters · 3 skill tiers</p>
             </div>
             <div className="max-h-[60vh] overflow-y-auto pr-1 space-y-5 scrollbar-thin">
               {tiers.map(tier => (
@@ -283,11 +283,11 @@ export default function ModeSelector({ onSelect, onStepChange, rulesVariant = 'a
                         whileHover={{ y: -3 }}
                         whileTap={{ scale: 0.97 }}
                         onClick={() => { setPendingBot(bot); changeStep('pregame'); }}
-                        className="flex flex-col items-center text-center p-3 rounded-2xl bg-white/5 hover:bg-white/10 border border-white/10 hover:border-white/25 transition-all"
+                        className="flex flex-col items-center text-center p-3 rounded-2xl bg-white dark:bg-white/5 hover:bg-gray-50 dark:hover:bg-white/10 border border-gray-100 dark:border-white/10 hover:border-gray-300 dark:hover:border-white/25 transition-all"
                       >
                         <div className={`w-14 h-14 rounded-2xl bg-gradient-to-br ${bot.color} flex items-center justify-center text-3xl mb-2 shadow-lg`}>{bot.emoji}</div>
-                        <span className="text-white text-xs font-bold leading-tight mb-1">{bot.name}</span>
-                        <span className="text-gray-500 text-[10px] leading-snug italic mb-2 line-clamp-2">{bot.tagline}</span>
+                        <span className="text-gray-900 dark:text-white text-xs font-bold leading-tight mb-1">{bot.name}</span>
+                        <span className="text-gray-400 dark:text-gray-500 text-[10px] leading-snug italic mb-2 line-clamp-2">{bot.tagline}</span>
                         <span className={`text-[10px] font-mono font-semibold px-2 py-0.5 rounded-full ${
                           tier.value === 'easy' ? 'bg-green-500/15 text-green-400' :
                           tier.value === 'medium' ? 'bg-yellow-500/15 text-yellow-400' :
@@ -299,7 +299,7 @@ export default function ModeSelector({ onSelect, onStepChange, rulesVariant = 'a
                 </div>
               ))}
             </div>
-            <button onClick={handleBack} className="w-full py-3 text-gray-400 hover:text-white text-sm transition-colors mt-4">← Back</button>
+            <button onClick={handleBack} className="w-full py-3 text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white text-sm transition-colors mt-4">← Back</button>
           </motion.div>
         )}
 
@@ -307,23 +307,23 @@ export default function ModeSelector({ onSelect, onStepChange, rulesVariant = 'a
         {step === 'online' && (
           <motion.div key="online" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }} className="space-y-6">
             <div className="text-center mb-8">
-              <h2 className="text-2xl font-bold text-white mb-2">Online Multiplayer</h2>
-              <p className="text-gray-400">Create or join a room</p>
+              <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">Online Multiplayer</h2>
+              <p className="text-gray-500 dark:text-gray-400">Create or join a room</p>
             </div>
-            <div className="p-6 rounded-2xl bg-white/5 border border-white/10">
-              <h3 className="font-bold text-white mb-2 flex items-center gap-2"><Wifi size={16} className="text-green-400" />Create New Room</h3>
-              <p className="text-gray-400 text-sm mb-4">Share the code with your friend to play together</p>
+            <div className="p-6 rounded-2xl bg-white dark:bg-white/5 border border-gray-100 dark:border-white/10">
+              <h3 className="font-bold text-gray-900 dark:text-white mb-2 flex items-center gap-2"><Wifi size={16} className="text-green-400" />Create New Room</h3>
+              <p className="text-gray-500 dark:text-gray-400 text-sm mb-4">Share the code with your friend to play together</p>
               <motion.button whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} onClick={handleCreateRoom} className="w-full py-3 bg-gradient-to-r from-green-600 to-teal-600 hover:from-green-500 hover:to-teal-500 text-white font-semibold rounded-xl transition-all">Create Room</motion.button>
             </div>
-            <div className="p-6 rounded-2xl bg-white/5 border border-white/10">
-              <h3 className="font-bold text-white mb-2">Join Existing Room</h3>
-              <p className="text-gray-400 text-sm mb-4">Enter the 6-character room code</p>
+            <div className="p-6 rounded-2xl bg-white dark:bg-white/5 border border-gray-100 dark:border-white/10">
+              <h3 className="font-bold text-gray-900 dark:text-white mb-2">Join Existing Room</h3>
+              <p className="text-gray-500 dark:text-gray-400 text-sm mb-4">Enter the 6-character room code</p>
               <div className="flex gap-2">
-                <input type="text" value={joinCode} onChange={e => setJoinCode(e.target.value.toUpperCase().slice(0, 6))} placeholder="ABC123" className="flex-1 px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-gray-500 font-mono text-lg tracking-widest focus:outline-none focus:border-amber-400" />
+                <input type="text" value={joinCode} onChange={e => setJoinCode(e.target.value.toUpperCase().slice(0, 6))} placeholder="ABC123" className="flex-1 px-4 py-3 bg-gray-100 dark:bg-white/10 border border-gray-200 dark:border-white/20 rounded-xl text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 font-mono text-lg tracking-widest focus:outline-none focus:border-amber-400" />
                 <motion.button whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} onClick={handleJoinRoom} disabled={joinCode.length !== 6} className="px-5 py-3 bg-gradient-to-r from-amber-500 to-amber-600 text-white font-semibold rounded-xl disabled:opacity-40 transition-all">Join</motion.button>
               </div>
             </div>
-            <button onClick={handleBack} className="w-full py-3 text-gray-400 hover:text-white text-sm transition-colors">← Back</button>
+            <button onClick={handleBack} className="w-full py-3 text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white text-sm transition-colors">← Back</button>
           </motion.div>
         )}
 
@@ -331,18 +331,18 @@ export default function ModeSelector({ onSelect, onStepChange, rulesVariant = 'a
         {step === 'pregame' && (
           <motion.div key="pregame" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }} className="space-y-5">
             <div className="text-center">
-              <h2 className="text-2xl font-bold text-white mb-1">Game Setup</h2>
-              <p className="text-gray-400 text-sm">Configure before you play</p>
+              <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-1">Game Setup</h2>
+              <p className="text-gray-500 dark:text-gray-400 text-sm">Configure before you play</p>
             </div>
 
             {/* Opponent card */}
-            <div className="flex items-center gap-3 p-4 rounded-2xl bg-white/5 border border-white/10">
+            <div className="flex items-center gap-3 p-4 rounded-2xl bg-white dark:bg-white/5 border border-gray-100 dark:border-white/10">
               {pendingBot ? (
                 <>
                   <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${pendingBot.color} flex items-center justify-center text-2xl flex-shrink-0`}>{pendingBot.emoji}</div>
                   <div className="min-w-0">
-                    <div className="font-bold text-white">{pendingBot.name}</div>
-                    <div className="text-xs text-gray-400">
+                    <div className="font-bold text-gray-900 dark:text-white">{pendingBot.name}</div>
+                    <div className="text-xs text-gray-500 dark:text-gray-400">
                       {pendingBot.difficulty === 'easy' ? '🟢 Beginner' : pendingBot.difficulty === 'medium' ? '🟡 Intermediate' : '🔴 Expert'} · {pendingBot.elo} ELO
                     </div>
                   </div>
@@ -351,17 +351,17 @@ export default function ModeSelector({ onSelect, onStepChange, rulesVariant = 'a
                 <>
                   <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-amber-600 to-orange-600 flex items-center justify-center text-2xl flex-shrink-0">👥</div>
                   <div>
-                    <div className="font-bold text-white">Local 2 Players</div>
-                    <div className="text-xs text-gray-400">Same screen · Take turns</div>
+                    <div className="font-bold text-gray-900 dark:text-white">Local 2 Players</div>
+                    <div className="text-xs text-gray-500 dark:text-gray-400">Same screen · Take turns</div>
                   </div>
                 </>
               )}
-              <button onClick={handleBack} className="ml-auto text-xs text-gray-500 hover:text-gray-300 transition-colors flex-shrink-0">Change</button>
+              <button onClick={handleBack} className="ml-auto text-xs text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 transition-colors flex-shrink-0">Change</button>
             </div>
 
             {/* Rules variant */}
             <div>
-              <div className="text-xs text-gray-500 font-semibold uppercase tracking-wider mb-2">Rules</div>
+              <div className="text-xs text-gray-400 dark:text-gray-500 font-semibold uppercase tracking-wider mb-2">Rules</div>
               <div className="grid grid-cols-2 gap-2">
                 {([
                   { value: 'american' as RulesVariant, flag: '🇺🇸', label: 'American', desc: 'Kings move 1 square. Capture forward only.' },
@@ -373,13 +373,13 @@ export default function ModeSelector({ onSelect, onStepChange, rulesVariant = 'a
                     className={`text-left p-3 rounded-xl border transition-all ${
                       localVariant === v.value
                         ? v.value === 'american' ? 'border-amber-500 bg-amber-500/15' : 'border-blue-500 bg-blue-500/15'
-                        : 'border-white/10 bg-white/5 hover:border-white/20'
+                        : 'border-gray-200 dark:border-white/10 bg-white dark:bg-white/5 hover:border-gray-300 dark:hover:border-white/20'
                     }`}
                   >
-                    <div className={`font-semibold text-sm mb-0.5 ${localVariant === v.value ? (v.value === 'american' ? 'text-amber-400' : 'text-blue-400') : 'text-white'}`}>
+                    <div className={`font-semibold text-sm mb-0.5 ${localVariant === v.value ? (v.value === 'american' ? 'text-amber-400' : 'text-blue-400') : 'text-gray-900 dark:text-white'}`}>
                       {v.flag} {v.label}
                     </div>
-                    <div className="text-[11px] text-gray-500">{v.desc}</div>
+                    <div className="text-[11px] text-gray-400 dark:text-gray-500">{v.desc}</div>
                   </button>
                 ))}
               </div>
@@ -387,7 +387,7 @@ export default function ModeSelector({ onSelect, onStepChange, rulesVariant = 'a
 
             {/* Time control */}
             <div>
-              <div className="text-xs text-gray-500 font-semibold uppercase tracking-wider mb-2">Time Control</div>
+              <div className="text-xs text-gray-400 dark:text-gray-500 font-semibold uppercase tracking-wider mb-2">Time Control</div>
               <div className="grid grid-cols-3 gap-2">
                 {TIME_CONTROLS.map(tc => (
                   <button
@@ -396,12 +396,12 @@ export default function ModeSelector({ onSelect, onStepChange, rulesVariant = 'a
                     className={`flex flex-col items-center py-3 px-2 rounded-xl border transition-all ${
                       timeControlId === tc.id
                         ? 'border-amber-500 bg-amber-500/15 text-amber-400'
-                        : 'border-white/10 bg-white/5 text-gray-300 hover:border-white/20 hover:text-white'
+                        : 'border-gray-200 dark:border-white/10 bg-white dark:bg-white/5 text-gray-600 dark:text-gray-300 hover:border-gray-300 dark:hover:border-white/20 hover:text-gray-900 dark:hover:text-white'
                     }`}
                   >
                     <span className="text-xl mb-1">{tc.icon}</span>
                     <span className="text-xs font-bold">{tc.label}</span>
-                    <span className="text-[10px] text-gray-500 mt-0.5">{tc.sub}</span>
+                    <span className="text-[10px] text-gray-400 dark:text-gray-500 mt-0.5">{tc.sub}</span>
                   </button>
                 ))}
               </div>
@@ -411,12 +411,12 @@ export default function ModeSelector({ onSelect, onStepChange, rulesVariant = 'a
                 {TIME_CONTROLS.find(t => t.id === timeControlId)?.type === 'move' && (
                   <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }} className="overflow-hidden">
                     <div className="mt-3">
-                      <div className="text-[11px] text-gray-500 mb-1.5">When the time runs out…</div>
+                      <div className="text-[11px] text-gray-400 dark:text-gray-500 mb-1.5">When the time runs out…</div>
                       <div className="grid grid-cols-2 gap-2">
                         <button
                           onClick={() => setMoveExpiry('random')}
                           className={`py-2 px-3 rounded-xl text-xs font-semibold border transition-all ${
-                            moveExpiry === 'random' ? 'border-amber-500 bg-amber-500/15 text-amber-400' : 'border-white/10 text-gray-400 hover:text-white'
+                            moveExpiry === 'random' ? 'border-amber-500 bg-amber-500/15 text-amber-400' : 'border-gray-200 dark:border-white/10 text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
                           }`}
                         >
                           🎲 Random move
@@ -424,7 +424,7 @@ export default function ModeSelector({ onSelect, onStepChange, rulesVariant = 'a
                         <button
                           onClick={() => setMoveExpiry('lose')}
                           className={`py-2 px-3 rounded-xl text-xs font-semibold border transition-all ${
-                            moveExpiry === 'lose' ? 'border-red-500 bg-red-500/15 text-red-400' : 'border-white/10 text-gray-400 hover:text-white'
+                            moveExpiry === 'lose' ? 'border-red-500 bg-red-500/15 text-red-400' : 'border-gray-200 dark:border-white/10 text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
                           }`}
                         >
                           💀 Lose the game
