@@ -1,90 +1,64 @@
 # CheckMate Arena
 
-**The ultimate competitive checkers (draughts) experience — play against AI, challenge friends locally, or battle online in real-time.**
+**A modern, feature-complete checkers platform — 22 unique AI opponents, real-time online multiplayer, tournaments, skins, daily challenges, and more.**
 
----
-
-## Who It's For
-
-CheckMate Arena is built for anyone who loves classic strategy games and wants a modern, polished experience:
-
-- **Casual players** looking for a quick, beautiful checkers game without installing anything
-- **Strategy enthusiasts** who want a tough AI opponent and post-game coaching
-- **Friends** who want to play each other remotely with instant room codes
-- **Learners** who want to improve with AI analysis that spots missed captures and blunders
-
----
-
-## Value Proposition
-
-| Feature | CheckMate Arena | Generic checkers app |
-|---|---|---|
-| AI difficulty levels | Easy / Medium / Hard (Minimax alpha-beta) | One level |
-| Post-game coaching | Yes — move-by-move analysis | No |
-| Real-time online multiplayer | Yes — Socket.io room codes | Rarely |
-| Modern animations | Framer Motion throughout | Static |
-| Leaderboard | Local + seeded global entries | No |
-| Mobile responsive | Fully responsive | Often not |
+🌐 **Live:** https://checkers-production-08d2.up.railway.app  
+📦 **Repo:** https://github.com/maddylady/checkers
 
 ---
 
 ## Features
 
-### Full English Draughts Rules
-- Standard 8x8 board, pieces on dark squares
-- Red pieces start top, Black pieces start bottom
-- Diagonal movement only for regular pieces
-- **Mandatory captures** — if a capture is available, you must take it
-- **Chain captures** — if another capture is available after capturing, you must continue
-- **King promotion** — reach the opposite back row to become a King
-- Kings move and capture in all four diagonal directions
-- Win by capturing all opponent pieces or leaving them with no valid moves
+### 7 Game Modes
 
-### Three Game Modes
+| Mode | Description |
+|---|---|
+| **vs Bots** | Challenge any of 22 unique AI characters, from Chicky (350 ELO) to DeepCheck (2200 ELO) |
+| **Tournament** | 4-player single-elimination bracket — enter names, tap the winner of each match, crown a champion |
+| **Gauntlet** | Beat all 22 bots in order without skipping. Progress saved locally. |
+| **Local 2P** | Pass-and-play on the same screen |
+| **Online** | Real-time multiplayer via 6-character room codes (Socket.io) |
+| **Mines Mode** | Hidden mines are buried on the board — land on one and it detonates |
+| **Roulette** | Spin the wheel each turn: extra move, skip, or play normally |
 
-**vs AI**
-- Easy: Mostly random moves, great for beginners
-- Medium: Minimax search depth 4 with alpha-beta pruning
-- Hard: Full depth-7 alpha-beta search — genuinely challenging
+### 22 AI Opponents with Real ELO-Based Strength
 
-**Local 2-Player**
-- Pass-and-play on the same screen
-- Perfect for casual matches with a friend
+Each bot has a genuine ELO rating (350–2200) mapped to real AI parameters (minimax depth + randomness). Playing Grandma Rose (420 ELO) feels completely different from playing DeepCheck (2200 ELO).
 
-**Online Multiplayer**
-- Create a room and get a 6-character code
-- Share the code with your opponent — they join instantly
-- Powered by Socket.io for real-time WebSocket communication
-- Reconnection support if connection drops
+| Tier | Bots |
+|---|---|
+| 🟢 Beginner | Chicky (350), Grandma Rose (420), The Jester (480), Lucky Larry (510) |
+| 🟡 Intermediate | Detective Dan, Gordon Ramsay, Steve Jobs, The Bookworm, The Coach, Jeff Bezos, Arman Suleimenov, Elon Musk |
+| 🔴 Expert | Bruce Lee, Warren Buffett, Napoleon, Cleopatra, The Oracle, Genghis Khan, Sun Tzu, Magnus Jr., Albert Einstein, DeepCheck |
 
-### AI Coach (Post-Game Analysis)
-After every game, the AI coach reviews your moves and reports:
-- Missed mandatory captures
-- Moves that left pieces exposed to immediate capture
-- Exposed king warnings
-- Chain capture opportunities you didn't take
+### Rules & Time Controls
+- **American** and **Russian** rules variants (Russian: flying kings, backward captures)
+- Time controls: untimed, 30s/move, 1min/move, 5min blitz, 15min rapid, 30min classical
+- Move expiry options: random move or forfeit
 
-### Leaderboard & Stats
-- Choose a username and city on first visit (stored in localStorage)
-- Wins, losses, draws and win rate tracked locally
-- **City-based leaderboard** — filter top players by city (e.g. "Top players from Almaty")
-- **Game history tab** — view your last 20 games with result, opponent, mode, duration, and date
-- Stats update automatically after every game
+### Progression & Rewards
+- **Coins** earned from wins, daily challenges, and streaks
+- **Skin Shop** — buy cosmetic piece styles with coins
+- **Daily Challenges** — complete specific goals to earn bonus coins and maintain streaks
+- **Badge system** — unlock achievement badges shown on your profile
+- **ELO rating** — rises and falls based on wins/losses against bots
 
-### Beautiful UI/UX
-- Dark/light theme toggle
-- Gradient background with subtle ambient glow
-- Piece selection highlights valid moves in green
-- Smooth spring animations for piece movement (Framer Motion)
-- Per-turn countdown timer (30 seconds) with auto-move on timeout
-- Captured pieces display with visual count
-- Confetti celebration on win screen
-- Win screen with AI Coach analysis panel
+### Social & Competitive
+- **Tournament mode** — run a live 4-player bracket with friends at the same table
+- **TikTok Challenge** — post your best game, tag @CheckMateArena, enter the giveaway
+- **Global Leaderboard** — synced via Supabase, shows top players with ELO and win rates
+- **Profile modal** — full stats, recent game history, badges, streak
 
-### Monetization
-- "Upgrade Pro" button in navbar
-- Stripe-style pricing modal (no real payment)
-- Pro features listed: custom skins, advanced analysis, private rooms, stats heatmaps
+### Learning & Analysis
+- **Tactics & Strategy panel** — 6 accordion lessons (basics, kings, center control, multi-jump, trading, endgame)
+- **Post-game review** — visual board replay with move-by-move comments; navigate with ⏮◀▶⏭
+- Highlights missed captures, exposed pieces, and chain opportunities
+
+### UI/UX
+- Full **light and dark mode** (Tailwind v4, toggle in navbar)
+- Framer Motion animations throughout — piece movement, screen transitions, confetti
+- Responsive layout — works on mobile and desktop
+- Google sign-in (Supabase Auth) for persistent cross-device stats
 
 ---
 
@@ -97,9 +71,10 @@ After every game, the AI coach reviews your moves and reports:
 | Styling | Tailwind CSS v4 |
 | Animations | Framer Motion |
 | Multiplayer | Socket.io 4 |
+| Auth & DB | Supabase (anonymous + Google OAuth) |
 | Icons | Lucide React |
-| Storage | localStorage (Supabase integration in progress) |
 | Server | Custom Node.js (Next.js + Socket.io on one port) |
+| Hosting | Railway (auto-deploy from main) |
 
 ---
 
@@ -108,47 +83,58 @@ After every game, the AI coach reviews your moves and reports:
 ```
 /checkers
 ├── app/
-│   ├── layout.tsx          — Root layout with metadata
-│   ├── page.tsx            — Home page (landing + mode select)
-│   ├── globals.css         — Base styles + Tailwind
-│   └── api/socket/
-│       └── route.ts        — Placeholder (real socket is in server.js)
+│   ├── layout.tsx              Root layout, metadata
+│   ├── page.tsx                Home screen, screen router, sidebar tabs
+│   └── globals.css             Tailwind base + dark mode config
 ├── components/
-│   ├── Board.tsx           — 8x8 game board with cell click handling
-│   ├── Piece.tsx           — Animated checker piece with king crown
-│   ├── GameControls.tsx    — Turn indicator, captured pieces, timer, buttons
-│   ├── GamePage.tsx        — Full game orchestration (AI loop, socket, state)
-│   ├── WinScreen.tsx       — Win/loss/draw modal with confetti + analysis
-│   ├── Navbar.tsx          — Top bar with theme toggle + Pro upgrade modal
-│   ├── Leaderboard.tsx     — Ranked player list sidebar
-│   ├── ModeSelector.tsx    — Game mode + difficulty selection UI
-│   └── UsernameModal.tsx   — First-run username + city prompt
+│   ├── Board.tsx               8×8 board, cell click handling, move highlights
+│   ├── Piece.tsx               Animated checker piece (regular + king)
+│   ├── GamePage.tsx            Game orchestration: AI loop, socket, timers, state
+│   ├── GameControls.tsx        Turn indicator, captured count, clock, buttons
+│   ├── WinScreen.tsx           Win/loss modal, board replay viewer, share button
+│   ├── ModeSelector.tsx        7-mode selector with bot grid, gauntlet, pregame settings
+│   ├── TournamentPage.tsx      4-player bracket tournament UI
+│   ├── CoachPanel.tsx          Tactics & Strategy accordion lessons
+│   ├── Leaderboard.tsx         Global/local player rankings
+│   ├── DailyChallenges.tsx     Daily goal tracker with streak
+│   ├── SkinShop.tsx            Coin-based cosmetic shop
+│   ├── Navbar.tsx              Top bar: theme, coins, profile, Google auth
+│   ├── ProfileModal.tsx        Full player stats, history, badges
+│   ├── UsernameModal.tsx       First-run setup
+│   ├── BadgeUnlockModal.tsx    Achievement notification popup
+│   └── RulesModal.tsx          Rules reference
 ├── lib/
-│   ├── game-logic.ts       — All checkers rules, board state, move generation
-│   ├── ai.ts               — Minimax engine with alpha-beta pruning
-│   └── storage.ts          — localStorage helpers for stats, history, leaderboard, city
-├── server.js               — Custom server: Next.js + Socket.io
+│   ├── game-logic.ts           All checkers rules, move generation, win detection
+│   ├── ai.ts                   Minimax + alpha-beta; ELO → depth/randomness mapping
+│   ├── storage.ts              localStorage helpers: stats, history, coins, streaks
+│   ├── supabase.ts             Supabase client, auth, leaderboard sync
+│   ├── gauntlet.ts             Gauntlet progress tracking (localStorage)
+│   ├── puzzles.ts              10 tactics drill positions (unused entry point)
+│   ├── badges.ts               Badge definitions and unlock logic
+│   ├── challenges.ts           Daily challenge definitions
+│   └── skins.ts                Skin definitions and unlock state
+├── server.js                   Custom server: Next.js + Socket.io on one port
 └── package.json
 ```
 
 ---
 
-## Game Logic Details
+## Game Logic
 
-The entire rules engine lives in `lib/game-logic.ts`:
+All rules live in `lib/game-logic.ts`:
 
-- `createInitialBoard()` — Places 12 red and 12 black pieces on starting squares
-- `getAllValidMoves(board, player)` — Returns all legal moves; capture moves are returned exclusively when any capture is available (mandatory capture rule)
-- `getChainCaptures()` — Recursively finds multi-jump sequences
-- `applyMove(board, move)` — Mutates a clone of the board, handles captures and promotion
-- `checkWinCondition()` — Detects wins (no pieces, no moves) and draws
-- `analyzeGame()` — Post-game analysis comparing each played move against available alternatives
+- `createInitialBoard()` — 12 red + 12 black pieces on dark squares
+- `getAllValidMoves(board, player)` — mandatory capture rule enforced (captures only if any exist)
+- `getChainCaptures()` — recursive multi-jump sequences
+- `applyMove(board, move)` — clones board, removes captures, handles promotion
+- `checkWinCondition()` — no pieces or no legal moves = loss; 40-move draw rule
 
 ### AI Engine (`lib/ai.ts`)
 
-- `evaluateBoard(board)` — Heuristic scoring: piece value (5 for regular, 10 for king), advancement bonus, center control bonus, back-row protection, edge penalty
-- `minimax(board, depth, alpha, beta, maximizing)` — Negamax-style search with alpha-beta pruning; red maximizes, black minimizes
-- `getBestMove(board, player, difficulty)` — Entry point; Easy adds 60% randomness, Hard goes full depth-7
+- **`paramsFromStrength(strength)`** — maps ELO 350–2200 to `{ depth, randomChance }` so each bot is genuinely unique
+- **`evaluateBoard(board)`** — piece value (man=5, king=10) + advancement + center control + back-row protection + edge penalty
+- **`minimax(board, depth, α, β)`** — alpha-beta pruning; iterative depth from easy (1) to hard (7)
+- **`getBestMove(board, player, difficulty, botElo?)`** — uses per-bot ELO when provided, falls back to difficulty tier
 
 ---
 
@@ -158,75 +144,53 @@ The entire rules engine lives in `lib/game-logic.ts`:
 # Install dependencies
 npm install
 
-# Start development server (Next.js + Socket.io)
+# Copy environment variables
+cp .env.example .env.local
+# Fill in your Supabase URL and anon key
+
+# Start dev server (Next.js + Socket.io)
 npm run dev
-
-# Build for production
-npm run build
-
-# Start production server
-npm start
 ```
 
-Open http://localhost:3000 in your browser.
+Open http://localhost:3000
 
-For online multiplayer, both players need to be able to reach the same server. In development, both players can use the same machine on localhost.
-
----
-
-## Deployment Plan
-
-### Recommended Order
-
-1. **Deploy the stable Next.js build to Vercel** for the public demo link.
-2. **Add Supabase Auth** with Google sign-in so players have persistent identities.
-3. **Move stats, game history, leaderboards, and rooms to Supabase** so progress works across devices.
-4. **Replace the custom Socket.io server for Vercel deployments** with Supabase Realtime, Ably, Pusher, Convex, or another hosted realtime provider.
-
-### Important Vercel Note
-
-The current `server.js` is a custom Node.js + Socket.io server. That works locally and on serverful hosts such as Railway, Render, Fly.io, or a VPS. Vercel can deploy the Next.js app, but Vercel Serverless Functions are not the right place to host a long-running Socket.io server. For a production Vercel deployment, keep the app on Vercel and move realtime multiplayer to Supabase Realtime or another realtime provider.
-
-### Supabase Environment Variables
-
-When Supabase is added, create `.env.local` with:
+### Environment Variables
 
 ```bash
-NEXT_PUBLIC_SUPABASE_URL=your-project-url
-NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=your-publishable-key
+NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key
 ```
 
-For Google sign-in, configure Google as an OAuth provider in the Supabase dashboard and add the production callback URL to the Supabase redirect allow list.
+---
+
+## Deployment
+
+The project is deployed on **Railway** with auto-deploy on push to `main`.
+
+Start command: `NODE_ENV=production node server.js`
+
+`server.js` boots Next.js and attaches Socket.io to the same HTTP server so both run on a single port — required for Railway's single-port environment.
+
+> **Note for Vercel:** Vercel Serverless Functions don't support long-running WebSocket connections. To deploy on Vercel, replace Socket.io with Supabase Realtime or another hosted WebSocket provider.
 
 ---
 
-## Environment Variables
+## Scripts
 
-| Variable | Default | Description |
-|---|---|---|
-| `PORT` | `3000` | Server port |
-| `HOSTNAME` | `localhost` | Bind address |
-| `NODE_ENV` | `development` | Set to `production` for prod mode |
-
----
-
-## Roadmap
-
-- [ ] Supabase backend — global persistent leaderboard, cross-device stats sync
-- [ ] Tournament bracket mode
-- [ ] Game replay viewer (step through move history)
-- [ ] International draughts rules (10x10 board)
-- [ ] Mobile app (React Native)
-- [ ] Real Stripe payment integration for Pro tier
-- [ ] Custom piece skins and board themes (Pro)
-- [ ] ELO rating system
+```bash
+npm run dev      # Development server (Next.js + Socket.io)
+npm run build    # Production build
+npm start        # Production server
+npm test         # Run unit tests (Vitest)
+npm run lint     # ESLint
+```
 
 ---
 
 ## License
 
-MIT — free to use, fork, and deploy.
+MIT — free to use, fork, and build on.
 
 ---
 
-*Built with Next.js, Socket.io, and Framer Motion. CheckMate Arena is a demonstration product.*
+*Built with Next.js · Socket.io · Framer Motion · Supabase*
