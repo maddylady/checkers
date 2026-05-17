@@ -673,8 +673,8 @@ export default function GamePage({
             </div>
           )}
 
-          {/* Move history / replay */}
-          <div className="bg-white/5 rounded-2xl p-4 border border-white/10">
+          {/* Move history / replay — fixed height so sidebar never grows */}
+          <div className="bg-white/5 rounded-2xl p-4 border border-white/10 flex flex-col" style={{ height: '290px' }}>
               <div className="flex items-center justify-between mb-2">
                 <div className="text-xs text-gray-400 uppercase tracking-wider">Move History</div>
                 {replayIndex !== null && (
@@ -723,7 +723,7 @@ export default function GamePage({
                 >⏭</button>
               </div>
               {/* Move list */}
-              <div className="max-h-40 overflow-y-auto space-y-0.5 pr-0.5">
+              <div className="flex-1 overflow-y-auto space-y-0.5 pr-0.5 min-h-0">
                 <button
                   onClick={() => setReplayIndex(0)}
                   className={`w-full flex items-center gap-2 px-2 py-1 rounded-lg text-xs transition-colors ${

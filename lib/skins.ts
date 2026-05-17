@@ -32,9 +32,9 @@ export function setActiveSkin(id: string) {
 }
 
 export function purchaseSkin(id: string, cost: number): boolean {
-    const coins = parseInt(localStorage.getItem('coins') || '0');
+    const coins = parseInt(localStorage.getItem('checkmate_arena_coins') || '0');
     if (coins < cost) return false;
-    localStorage.setItem('coins', String(coins - cost));
+    localStorage.setItem('checkmate_arena_coins', String(coins - cost));
     const owned = getOwnedSkins();
     if (!owned.includes(id)) {
         owned.push(id);
