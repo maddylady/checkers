@@ -113,9 +113,33 @@ export default function Board({ gameState, onCellClick, flipped = false, disable
 
                   {/* Last move highlight */}
                   {isLastMove && isDark && !isSelected && (
-                    <div className={`absolute inset-0 pointer-events-none ${
-                      isLastMoveTo ? 'bg-blue-400/30' : 'bg-blue-400/15'
-                    }`} />
+                    <>
+                      {/* Background tint */}
+                      <motion.div
+                        key={`lastmove-${row}-${col}-${moveHistory.length}`}
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        transition={{ duration: 0.25 }}
+                        className={`absolute inset-0 pointer-events-none ${
+                          isLastMoveTo ? 'bg-cyan-400/25' : 'bg-cyan-400/10'
+                        }`}
+                      />
+                      {/* Corner brackets */}
+                      {(['tl','tr','bl','br'] as const).map(corner => (
+                        <motion.div
+                          key={`${corner}-${moveHistory.length}`}
+                          initial={{ opacity: 0, scale: 0.5 }}
+                          animate={{ opacity: isLastMoveTo ? 1 : 0.5, scale: 1 }}
+                          transition={{ duration: 0.2, delay: 0.05 }}
+                          className={`absolute w-2.5 h-2.5 pointer-events-none ${
+                            corner === 'tl' ? 'top-1 left-1 border-t-2 border-l-2' :
+                            corner === 'tr' ? 'top-1 right-1 border-t-2 border-r-2' :
+                            corner === 'bl' ? 'bottom-1 left-1 border-b-2 border-l-2' :
+                                              'bottom-1 right-1 border-b-2 border-r-2'
+                          } ${isLastMoveTo ? 'border-cyan-300' : 'border-cyan-400/50'}`}
+                        />
+                      ))}
+                    </>
                   )}
 
                   {/* Piece */}
