@@ -38,6 +38,7 @@ export async function syncPlayerStats(stats: PlayerStats): Promise<void> {
     losses: stats.losses,
     draws: stats.draws,
     games_played: stats.gamesPlayed,
+    elo: stats.elo ?? 1200,
     updated_at: new Date().toISOString(),
   }, { onConflict: 'user_id' });
   if (error) console.error('[Supabase] player_stats upsert error:', error);
@@ -110,8 +111,8 @@ export async function fetchLeaderboard(): Promise<PlayerStats[]> {
 
   const { data, error } = await supabase
     .from('player_stats')
-    .select('username, city, wins, losses, draws, games_played')
-    .order('wins', { ascending: false })
+    .select('username, city, wins, losses, draws, games_played, elo')
+    .order('elo', { ascending: false })
     .limit(50);
   if (error || !data) return [];
   return data.map(row => ({
@@ -121,6 +122,6 @@ export async function fetchLeaderboard(): Promise<PlayerStats[]> {
     losses: row.losses,
     draws: row.draws,
     gamesPlayed: row.games_played,
-    elo: 1200,
+    elo: row.elo ?? 1200,
   }));
 }

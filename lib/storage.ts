@@ -48,9 +48,13 @@ export function getStats(): PlayerStats {
   }
   const raw = localStorage.getItem(STORAGE_KEYS.STATS);
   if (!raw) return { username: getUsername(), wins: 0, losses: 0, draws: 0, gamesPlayed: 0, city: getCity(), elo: 1200 };
-  const parsed = JSON.parse(raw) as PlayerStats;
-  if (!parsed.elo) parsed.elo = 1200;
-  return parsed;
+  try {
+    const parsed = JSON.parse(raw) as PlayerStats;
+    if (!parsed.elo) parsed.elo = 1200;
+    return parsed;
+  } catch {
+    return { username: getUsername(), wins: 0, losses: 0, draws: 0, gamesPlayed: 0, city: getCity(), elo: 1200 };
+  }
 }
 
 export function saveStats(stats: PlayerStats): void {
@@ -91,7 +95,7 @@ export function getStreak(): StreakData {
   if (typeof window === 'undefined') return { count: 0, lastDate: '' };
   const raw = localStorage.getItem(STORAGE_KEYS.STREAK);
   if (!raw) return { count: 0, lastDate: '' };
-  return JSON.parse(raw);
+  try { return JSON.parse(raw); } catch { return { count: 0, lastDate: '' }; }
 }
 
 export function updateStreak(): number {
@@ -183,13 +187,15 @@ export function recordGameResult(
 export function getGameHistory(): GameRecord[] {
   if (typeof window === 'undefined') return [];
   const raw = localStorage.getItem(STORAGE_KEYS.HISTORY);
-  return raw ? JSON.parse(raw) : [];
+  if (!raw) return [];
+  try { return JSON.parse(raw); } catch { return []; }
 }
 
 export function getLeaderboard(): PlayerStats[] {
   if (typeof window === 'undefined') return [];
   const raw = localStorage.getItem(STORAGE_KEYS.LEADERBOARD);
-  return raw ? JSON.parse(raw) : [];
+  if (!raw) return [];
+  try { return JSON.parse(raw); } catch { return []; }
 }
 
 function saveLeaderboard(lb: PlayerStats[]): void {

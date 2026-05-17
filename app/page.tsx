@@ -27,7 +27,7 @@ import {
   getRulesVariant,
   setRulesVariant,
 } from '@/lib/storage';
-import { markGauntletWin, isGauntletComplete } from '@/lib/gauntlet';
+import { markGauntletWin } from '@/lib/gauntlet';
 import { fetchLeaderboard, onAuthStateChange, type AuthUser } from '@/lib/supabase';
 import type { Difficulty } from '@/lib/ai';
 import type { PlayerStats, GameRecord, RulesVariant } from '@/lib/game-logic';
@@ -83,14 +83,14 @@ export default function HomePage() {
       setStreak(getStreak().count);
       setRulesVariantState(getRulesVariant());
 
-      // Merge Supabase leaderboard with local ELOs (Supabase has no ELO column)
+      // Merge Supabase leaderboard with local data; Supabase ELO takes precedence if present
       fetchLeaderboard().then(data => {
         if (data.length > 0) {
           const local = getLeaderboard();
-          const merged = data.map(row => ({
-            ...row,
-            elo: local.find(p => p.username === row.username)?.elo ?? 1200,
-          }));
+          const merged = data.map(row => {
+            const localEntry = local.find(p => p.username === row.username);
+            return { ...row, elo: (row.elo && row.elo > 1200) ? row.elo : (localEntry?.elo ?? 1200) };
+          });
           setLeaderboard(merged);
         }
       }).catch(() => {});
@@ -135,10 +135,6 @@ export default function HomePage() {
   const handleGameEnd = (result: 'win' | 'loss' | 'draw') => {
     if (gauntletBotId && result === 'win') {
       markGauntletWin(gauntletBotId);
-      if (isGauntletComplete()) {
-        // Will show on next render — user sees win screen first
-        console.log('Gauntlet complete!');
-      }
     }
     setGauntletBotId(null);
   };
@@ -153,10 +149,10 @@ export default function HomePage() {
     fetchLeaderboard().then(data => {
       if (data.length > 0) {
         const local = getLeaderboard();
-        const merged = data.map(row => ({
-          ...row,
-          elo: local.find(p => p.username === row.username)?.elo ?? 1200,
-        }));
+        const merged = data.map(row => {
+          const localEntry = local.find(p => p.username === row.username);
+          return { ...row, elo: (row.elo && row.elo > 1200) ? row.elo : (localEntry?.elo ?? 1200) };
+        });
         setLeaderboard(merged);
       } else {
         setLeaderboard(getLeaderboard());
