@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Sun, Moon, Zap, Crown, X, Check, LogOut } from 'lucide-react';
+import { Sun, Moon, Zap, Crown, X, Check, LogOut, ShoppingBag } from 'lucide-react';
 import { setPro } from '@/lib/storage';
 import { signInWithGoogle, signOut, type AuthUser } from '@/lib/supabase';
 
@@ -13,6 +13,7 @@ interface NavbarProps {
   onUsernameChange: () => void;
   googleUser: AuthUser | null;
   coins?: number;
+  onShopOpen: () => void;
 }
 
 function GoogleIcon() {
@@ -119,7 +120,7 @@ function ProModal({ onClose }: { onClose: () => void }) {
   );
 }
 
-export default function Navbar({ theme, onThemeToggle, username, onUsernameChange, googleUser, coins }: NavbarProps) {
+export default function Navbar({ theme, onThemeToggle, username, onUsernameChange, googleUser, coins, onShopOpen }: NavbarProps) {
   const [showPro, setShowPro] = useState(false);
   const [showUserMenu, setShowUserMenu] = useState(false);
   const [signingIn, setSigningIn] = useState(false);
@@ -236,6 +237,17 @@ export default function Navbar({ theme, onThemeToggle, username, onUsernameChang
           >
             {theme === 'dark' ? <Sun size={16} /> : <Moon size={16} />}
           </button>
+
+          {/* Shop button */}
+          <motion.button
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              onClick={onShopOpen}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white/10 hover:bg-white/20 text-white text-sm font-semibold"
+          >
+            <ShoppingBag size={14} />
+            <span className="hidden sm:block">Shop</span>
+          </motion.button>
 
           {/* Pro button */}
           <motion.button

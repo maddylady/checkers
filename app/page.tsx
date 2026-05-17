@@ -1,5 +1,7 @@
 'use client';
-
+import SkinShop from '@/components/SkinShop';
+import BadgeUnlockModal from '@/components/BadgeUnlockModal';
+import { BADGES, type Badge } from '@/lib/badges';
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Navbar from '@/components/Navbar';
@@ -42,6 +44,8 @@ export default function HomePage() {
   const [statsTab, setStatsTab] = useState<'stats' | 'history'>('stats');
   const [googleUser, setGoogleUser] = useState<AuthUser | null>(null);
   const [coins, setCoins] = useState(0);
+  const [showShop, setShowShop] = useState(false);
+  const [newBadge, setNewBadge] = useState<Badge | null>(null);
   const [streak, setStreak] = useState(0);
 
   // Load all localStorage state after hydration to avoid server/client mismatch
@@ -127,6 +131,7 @@ export default function HomePage() {
         onUsernameChange={() => setShowUsernameModal(true)}
         googleUser={googleUser}
         coins={coins}
+        onShopOpen={() => setShowShop(true)}
       />
 
       <AnimatePresence mode="wait">
@@ -390,6 +395,13 @@ export default function HomePage() {
           />
         )}
       </AnimatePresence>
+      {showShop && (
+          <SkinShop
+              onClose={() => setShowShop(false)}
+              onCoinsChange={() => setCoins(getCoins())}
+          />
+      )}
+      <BadgeUnlockModal badge={newBadge} onClose={() => setNewBadge(null)} />
     </div>
   );
 }
