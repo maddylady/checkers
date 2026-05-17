@@ -41,21 +41,26 @@ export default function HomePage() {
 
   // Load all localStorage state after hydration to avoid server/client mismatch
   useEffect(() => {
-    const name = getUsername();
-    const userCity = getCity();
-    setUsernameState(name);
-    setCityState(userCity);
-    setIsFirstTime(!name);
-    setShowUsernameModal(!name);
-    setThemeState(getTheme());
-    setStats(getStats() ?? null);
-    setHistory(getGameHistory());
-    seedLeaderboardIfEmpty();
-    setLeaderboard(getLeaderboard());
-    // Then try to load real leaderboard from Supabase
-    fetchLeaderboard().then(data => {
-      if (data.length > 0) setLeaderboard(data);
-    }).catch(() => {});
+    const loadLocalState = setTimeout(() => {
+      const name = getUsername();
+      const userCity = getCity();
+      setUsernameState(name);
+      setCityState(userCity);
+      setIsFirstTime(!name);
+      setShowUsernameModal(!name);
+      setThemeState(getTheme());
+      setStats(getStats() ?? null);
+      setHistory(getGameHistory());
+      seedLeaderboardIfEmpty();
+      setLeaderboard(getLeaderboard());
+
+      // Then try to load real leaderboard from Supabase
+      fetchLeaderboard().then(data => {
+        if (data.length > 0) setLeaderboard(data);
+      }).catch(() => {});
+    }, 0);
+
+    return () => clearTimeout(loadLocalState);
   }, []);
 
   const handleThemeToggle = () => {

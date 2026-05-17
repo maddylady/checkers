@@ -1,28 +1,35 @@
 import { createClient } from '@supabase/supabase-js';
 import type { PlayerStats } from './game-logic';
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+const supabaseKey =
+  process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY ??
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
-export const supabase = createClient(supabaseUrl, supabaseAnonKey);
+export const supabase = supabaseUrl && supabaseKey
+  ? createClient(supabaseUrl, supabaseKey)
+  : null;
 
 async function ensureAuth(): Promise<string | null> {
+  if (!supabase) return null;
+
   try {
     const { data: { session } } = await supabase.auth.getSession();
-    if (session?.user) { console.log('[Supabase] existing session:', session.user.id); return session.user.id; }
+    if (session?.user) return session.user.id;
+
     const { data, error } = await supabase.auth.signInAnonymously();
-    if (error) { console.error('[Supabase] signInAnonymously error:', error); return null; }
-    console.log('[Supabase] new anon user:', data.user?.id);
+    if (error) return null;
+
     return data.user?.id ?? null;
-  } catch (e) {
-    console.error('[Supabase] ensureAuth exception:', e);
+  } catch {
     return null;
   }
 }
 
 export async function syncPlayerStats(stats: PlayerStats): Promise<void> {
   const userId = await ensureAuth();
-  if (!userId) { console.warn('[Supabase] auth failed — skipping stats sync'); return; }
+  if (!supabase || !userId) return;
+
   const { error } = await supabase.from('player_stats').upsert({
     user_id: userId,
     username: stats.username,
@@ -44,12 +51,15 @@ export async function addGameRecord(record: {
   duration: number;
 }): Promise<void> {
   const userId = await ensureAuth();
-  if (!userId) return;
+  if (!supabase || !userId) return;
+
   const { error } = await supabase.from('game_history').insert({ user_id: userId, ...record });
   if (error) console.error('[Supabase] game_history insert error:', error);
 }
 
 export async function fetchLeaderboard(): Promise<PlayerStats[]> {
+  if (!supabase) return [];
+
   const { data, error } = await supabase
     .from('player_stats')
     .select('username, city, wins, losses, draws, games_played')
