@@ -225,10 +225,15 @@ export default function Navbar({ theme, onThemeToggle, username, onUsernameChang
           )}
 
           {/* Coins badge */}
-          {coins !== undefined && coins > 0 && (
-            <div className="flex items-center gap-1 px-2 py-1.5 rounded-full bg-amber-500/10 border border-amber-500/20">
+          {coins !== undefined && (
+            <div className="group relative flex items-center gap-1 px-2 py-1.5 rounded-full bg-amber-500/10 border border-amber-500/20 cursor-default">
               <span className="text-amber-400 text-sm">🪙</span>
               <span className="text-amber-400 text-xs font-bold">{coins}</span>
+              <div className="absolute bottom-full right-0 mb-2 px-3 py-2 bg-gray-900 border border-white/10 rounded-xl text-xs text-gray-300 whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-50 shadow-xl">
+                <div className="font-semibold text-white mb-1">🪙 Coins</div>
+                <div>Win games &amp; complete daily challenges to earn coins.</div>
+                <div className="text-gray-400 mt-0.5">Spend them in the Shop on piece skins!</div>
+              </div>
             </div>
           )}
 

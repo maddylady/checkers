@@ -34,6 +34,7 @@ export interface GameRecord {
   opponent: string;
   moves: number;
   duration: number;
+  eloAfter?: number;
 }
 
 export interface PlayerStats {

@@ -172,6 +172,7 @@ export function recordGameResult(
     opponent,
     moves,
     duration,
+    eloAfter: stats.elo,
   };
   history.unshift(record);
   // Keep last 50
@@ -216,21 +217,27 @@ export function setPro(val: boolean): void {
   localStorage.setItem(STORAGE_KEYS.PRO, val ? 'true' : 'false');
 }
 
-// Seed some fake leaderboard entries for demo
+const SEEDED_USERNAMES = ['DragonKing99', 'CheckMaster', 'QueenSlayer', 'BoardWizard', 'NightRider', 'SteppeEagle', 'IronKnight', 'AlphaMove'];
+const LEADERBOARD_SEED_VERSION = 'v3';
+
+const FAKE_ENTRIES: PlayerStats[] = [
+  { username: 'DragonKing99', wins: 142, losses: 23, draws: 8, gamesPlayed: 173, city: 'Almaty',    elo: 1847 },
+  { username: 'CheckMaster',  wins: 98,  losses: 41, draws: 12, gamesPlayed: 151, city: 'Astana',   elo: 1634 },
+  { username: 'QueenSlayer',  wins: 87,  losses: 55, draws: 5,  gamesPlayed: 147, city: 'Almaty',   elo: 1521 },
+  { username: 'BoardWizard',  wins: 76,  losses: 48, draws: 9,  gamesPlayed: 133, city: 'Bishkek',  elo: 1478 },
+  { username: 'NightRider',   wins: 64,  losses: 33, draws: 14, gamesPlayed: 111, city: 'Tashkent', elo: 1412 },
+  { username: 'SteppeEagle',  wins: 58,  losses: 29, draws: 6,  gamesPlayed: 93,  city: 'Almaty',   elo: 1389 },
+  { username: 'IronKnight',   wins: 51,  losses: 44, draws: 11, gamesPlayed: 106, city: 'Astana',   elo: 1298 },
+  { username: 'AlphaMove',    wins: 45,  losses: 38, draws: 3,  gamesPlayed: 86,  city: 'Bishkek',  elo: 1243 },
+];
+
+// Seed/migrate leaderboard fake entries, preserving real user data
 export function seedLeaderboardIfEmpty(): void {
   if (typeof window === 'undefined') return;
+  const version = localStorage.getItem('checkmate_lb_version');
+  if (version === LEADERBOARD_SEED_VERSION) return;
   const lb = getLeaderboard();
-  if (lb.length === 0) {
-    const fakeEntries: PlayerStats[] = [
-      { username: 'DragonKing99', wins: 142, losses: 23, draws: 8, gamesPlayed: 173, city: 'Almaty',    elo: 1847 },
-      { username: 'CheckMaster',  wins: 98,  losses: 41, draws: 12, gamesPlayed: 151, city: 'Astana',   elo: 1634 },
-      { username: 'QueenSlayer',  wins: 87,  losses: 55, draws: 5,  gamesPlayed: 147, city: 'Almaty',   elo: 1521 },
-      { username: 'BoardWizard',  wins: 76,  losses: 48, draws: 9,  gamesPlayed: 133, city: 'Bishkek',  elo: 1478 },
-      { username: 'NightRider',   wins: 64,  losses: 33, draws: 14, gamesPlayed: 111, city: 'Tashkent', elo: 1412 },
-      { username: 'SteppeEagle',  wins: 58,  losses: 29, draws: 6,  gamesPlayed: 93,  city: 'Almaty',   elo: 1389 },
-      { username: 'IronKnight',   wins: 51,  losses: 44, draws: 11, gamesPlayed: 106, city: 'Astana',   elo: 1298 },
-      { username: 'AlphaMove',    wins: 45,  losses: 38, draws: 3,  gamesPlayed: 86,  city: 'Bishkek',  elo: 1243 },
-    ];
-    saveLeaderboard(fakeEntries);
-  }
+  const realUsers = lb.filter(p => !SEEDED_USERNAMES.includes(p.username));
+  saveLeaderboard([...FAKE_ENTRIES, ...realUsers]);
+  localStorage.setItem('checkmate_lb_version', LEADERBOARD_SEED_VERSION);
 }

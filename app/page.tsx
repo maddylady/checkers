@@ -1,6 +1,7 @@
 'use client';
 import SkinShop from '@/components/SkinShop';
 import BadgeUnlockModal from '@/components/BadgeUnlockModal';
+import ProfileModal from '@/components/ProfileModal';
 import { BADGES, type Badge } from '@/lib/badges';
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -47,6 +48,7 @@ export default function HomePage() {
   const [googleUser, setGoogleUser] = useState<AuthUser | null>(null);
   const [coins, setCoins] = useState(0);
   const [showShop, setShowShop] = useState(false);
+  const [showProfile, setShowProfile] = useState(false);
   const [newBadge, setNewBadge] = useState<Badge | null>(null);
   const [streak, setStreak] = useState(0);
 
@@ -159,9 +161,7 @@ export default function HomePage() {
                   transition={{ delay: 0.2 }}
                   className="lg:col-span-3"
                 >
-                  <div className={`rounded-3xl p-6 border ${
-                    theme === 'dark' ? 'bg-white/5 border-white/10' : 'bg-white border-gray-200 shadow-lg'
-                  }`}>
+                  <div className="rounded-3xl p-6 border bg-gray-900/80 border-white/10 backdrop-blur-sm shadow-lg">
                     <ModeSelector onSelect={handleModeSelect} />
                   </div>
                 </motion.div>
@@ -174,9 +174,7 @@ export default function HomePage() {
                   className="lg:col-span-2 flex flex-col gap-3"
                 >
                   {/* Tab switcher */}
-                  <div className={`flex p-1 rounded-2xl border ${
-                    theme === 'dark' ? 'bg-white/5 border-white/10' : 'bg-gray-100 border-gray-200'
-                  }`}>
+                  <div className="flex p-1 rounded-2xl border bg-white/5 border-white/10">
                     {([
                       { id: 'leaderboard', label: '🏆 Top' },
                       { id: 'stats',       label: '📊 Stats' },
@@ -187,12 +185,8 @@ export default function HomePage() {
                         onClick={() => setSidebarTab(tab.id)}
                         className={`flex-1 py-2 text-xs font-semibold rounded-xl transition-all ${
                           sidebarTab === tab.id
-                            ? theme === 'dark'
-                              ? 'bg-white/15 text-white shadow-sm'
-                              : 'bg-white text-gray-900 shadow-sm'
-                            : theme === 'dark'
-                              ? 'text-gray-500 hover:text-gray-300'
-                              : 'text-gray-400 hover:text-gray-600'
+                            ? 'bg-white/15 text-white shadow-sm'
+                            : 'text-gray-500 hover:text-gray-300'
                         }`}
                       >
                         {tab.label}
@@ -210,9 +204,7 @@ export default function HomePage() {
 
                     {sidebarTab === 'stats' && (
                       <motion.div key="stats" initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}>
-                        <div className={`rounded-2xl border p-4 ${
-                          theme === 'dark' ? 'bg-white/5 border-white/10' : 'bg-white border-gray-200 shadow-md'
-                        }`}>
+                        <div className="rounded-2xl border p-4 bg-white/5 border-white/10">
                           {username && stats ? (
                             <>
                               {/* Player row */}
@@ -221,7 +213,7 @@ export default function HomePage() {
                                   {username[0]?.toUpperCase()}
                                 </div>
                                 <div className="min-w-0 flex-1">
-                                  <div className={`font-bold truncate ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>{username}</div>
+                                  <div className="font-bold truncate text-white">{username}</div>
                                   <div className="text-xs text-gray-400">{stats.gamesPlayed} games played</div>
                                 </div>
                                 <div className="text-right flex-shrink-0">
@@ -237,7 +229,7 @@ export default function HomePage() {
                                   { label: 'Losses', value: stats.losses, color: 'text-red-400'   },
                                   { label: 'Draws',  value: stats.draws,  color: 'text-blue-400'  },
                                 ].map(s => (
-                                  <div key={s.label} className={`text-center p-2.5 rounded-xl ${theme === 'dark' ? 'bg-white/5' : 'bg-gray-50'}`}>
+                                  <div key={s.label} className="text-center p-2.5 rounded-xl bg-white/5">
                                     <div className={`text-2xl font-bold ${s.color}`}>{s.value}</div>
                                     <div className="text-xs text-gray-400">{s.label}</div>
                                   </div>
@@ -254,10 +246,10 @@ export default function HomePage() {
                                       const rc = g.result === 'win' ? 'text-green-400 bg-green-400/10' : g.result === 'loss' ? 'text-red-400 bg-red-400/10' : 'text-blue-400 bg-blue-400/10';
                                       const dateStr = new Date(g.date).toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
                                       return (
-                                        <div key={g.id} className={`flex items-center gap-2 px-2.5 py-1.5 rounded-xl ${theme === 'dark' ? 'bg-white/5' : 'bg-gray-50'}`}>
+                                        <div key={g.id} className="flex items-center gap-2 px-2.5 py-1.5 rounded-xl bg-white/5">
                                           <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-lg uppercase ${rc}`}>{g.result[0]}</span>
                                           <span className="text-xs">{modeIcon}</span>
-                                          <span className={`flex-1 text-xs truncate ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>vs {g.opponent}</span>
+                                          <span className="flex-1 text-xs truncate text-gray-300">vs {g.opponent}</span>
                                           <span className="text-xs text-gray-500 flex-shrink-0">{dateStr}</span>
                                         </div>
                                       );
@@ -269,11 +261,19 @@ export default function HomePage() {
                           ) : (
                             <div className="text-center py-10">
                               <div className="text-4xl mb-3">🎮</div>
-                              <div className={`font-semibold mb-1 ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
+                              <div className="font-semibold mb-1 text-white">
                                 {username ? 'No games yet' : 'Set your username first'}
                               </div>
                               <div className="text-sm text-gray-500">Play a game to see your stats here</div>
                             </div>
+                          )}
+                          {username && stats && (
+                            <button
+                              onClick={() => setShowProfile(true)}
+                              className="w-full mt-3 py-2 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-xs text-gray-400 hover:text-white transition-colors"
+                            >
+                              View Full Profile →
+                            </button>
                           )}
                         </div>
                       </motion.div>
@@ -335,6 +335,15 @@ export default function HomePage() {
           />
       )}
       <BadgeUnlockModal badge={newBadge} onClose={() => setNewBadge(null)} />
+      {showProfile && stats && (
+        <ProfileModal
+          stats={stats}
+          history={history}
+          streak={streak}
+          coins={coins}
+          onClose={() => setShowProfile(false)}
+        />
+      )}
     </div>
   );
 }
