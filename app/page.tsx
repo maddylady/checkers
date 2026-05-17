@@ -145,41 +145,7 @@ export default function HomePage() {
             exit={{ opacity: 0 }}
             className="pt-16 min-h-screen"
           >
-            <div className="max-w-6xl mx-auto px-4 py-5">
-
-              {/* Compact header row */}
-              <motion.div
-                initial={{ opacity: 0, y: -10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.1 }}
-                className="flex items-center justify-between mb-5 flex-wrap gap-3"
-              >
-                <div>
-                  <h1 className={`text-2xl font-black ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
-                    CheckMate{' '}
-                    <span className="bg-gradient-to-r from-amber-400 to-red-500 bg-clip-text text-transparent">Arena</span>
-                  </h1>
-                  <p className="text-gray-500 text-sm">Real-time competitive checkers</p>
-                </div>
-                <div className="flex items-center gap-2 flex-wrap">
-                  <span className="text-xs px-3 py-1.5 rounded-full bg-amber-500/10 border border-amber-500/20 text-amber-400">
-                    Open Beta v1.0
-                  </span>
-                  {streak > 1 && (
-                    <span className="text-xs px-3 py-1.5 rounded-full bg-orange-500/10 border border-orange-500/20 text-orange-400">
-                      🔥 {streak} day streak
-                    </span>
-                  )}
-                  {!googleUser?.isGoogle && (
-                    <button
-                      onClick={() => import('@/lib/supabase').then(m => m.signInWithGoogle())}
-                      className="text-xs px-3 py-1.5 rounded-full bg-blue-500/10 border border-blue-500/20 text-blue-400 hover:bg-blue-500/20 transition-colors"
-                    >
-                      Sign in to sync ↗
-                    </button>
-                  )}
-                </div>
-              </motion.div>
+            <div className="max-w-6xl mx-auto px-4 py-4">
 
               {/* Main two-column grid */}
               <div className="grid lg:grid-cols-5 gap-5 items-start">
