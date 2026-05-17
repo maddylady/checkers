@@ -29,21 +29,30 @@ export default function HomePage() {
   const [gameMode, setGameMode] = useState<GameMode>('ai');
   const [difficulty, setDifficulty] = useState<Difficulty>('medium');
   const [roomCode, setRoomCode] = useState<string | undefined>();
-  const [username, setUsernameState] = useState(() => getUsername());
-  const [city, setCityState] = useState(() => getCity());
-  const [isFirstTime, setIsFirstTime] = useState(() => !getUsername());
-  const [showUsernameModal, setShowUsernameModal] = useState(() => !getUsername());
-  const [theme, setThemeState] = useState<'dark' | 'light'>(() => getTheme());
-  const [leaderboard, setLeaderboard] = useState<PlayerStats[]>(() => {
-    seedLeaderboardIfEmpty();
-    return getLeaderboard();
-  });
-  const [stats, setStats] = useState<PlayerStats | null>(() => getStats() ?? null);
-  const [history, setHistory] = useState<GameRecord[]>(() => getGameHistory());
+  const [username, setUsernameState] = useState('');
+  const [city, setCityState] = useState('');
+  const [isFirstTime, setIsFirstTime] = useState(true);
+  const [showUsernameModal, setShowUsernameModal] = useState(false);
+  const [theme, setThemeState] = useState<'dark' | 'light'>('dark');
+  const [leaderboard, setLeaderboard] = useState<PlayerStats[]>([]);
+  const [stats, setStats] = useState<PlayerStats | null>(null);
+  const [history, setHistory] = useState<GameRecord[]>([]);
   const [statsTab, setStatsTab] = useState<'stats' | 'history'>('stats');
 
-  // Fetch real leaderboard from Supabase on mount
+  // Load all localStorage state after hydration to avoid server/client mismatch
   useEffect(() => {
+    const name = getUsername();
+    const userCity = getCity();
+    setUsernameState(name);
+    setCityState(userCity);
+    setIsFirstTime(!name);
+    setShowUsernameModal(!name);
+    setThemeState(getTheme());
+    setStats(getStats() ?? null);
+    setHistory(getGameHistory());
+    seedLeaderboardIfEmpty();
+    setLeaderboard(getLeaderboard());
+    // Then try to load real leaderboard from Supabase
     fetchLeaderboard().then(data => {
       if (data.length > 0) setLeaderboard(data);
     }).catch(() => {});
