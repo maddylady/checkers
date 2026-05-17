@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Sun, Moon, Zap, Crown, X, Check, LogOut, ShoppingBag, User, BookOpen } from 'lucide-react';
 import { setPro } from '@/lib/storage';
@@ -33,6 +33,12 @@ function GoogleIcon() {
 function ProModal({ onClose }: { onClose: () => void }) {
   const [purchasing, setPurchasing] = useState(false);
   const [purchased, setPurchased] = useState(false);
+
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); };
+    document.addEventListener('keydown', onKey);
+    return () => document.removeEventListener('keydown', onKey);
+  }, [onClose]);
 
   const handlePurchase = () => {
     setPurchasing(true);

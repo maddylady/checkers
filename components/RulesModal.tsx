@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X } from 'lucide-react';
 import type { RulesVariant } from '@/lib/game-logic';
@@ -13,6 +13,12 @@ interface RulesModalProps {
 
 export default function RulesModal({ onClose, currentVariant, onVariantChange }: RulesModalProps) {
   const [tab, setTab] = useState<'rules' | 'variant'>('rules');
+
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); };
+    document.addEventListener('keydown', onKey);
+    return () => document.removeEventListener('keydown', onKey);
+  }, [onClose]);
 
   return (
     <motion.div

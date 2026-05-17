@@ -9,11 +9,12 @@ interface LeaderboardProps {
   entries: PlayerStats[];
   currentUsername?: string;
   theme?: 'dark' | 'light';
+  onPlayerClick?: (player: PlayerStats) => void;
 }
 
 const medals = ['🥇', '🥈', '🥉'];
 
-export default function Leaderboard({ entries, currentUsername, theme = 'dark' }: LeaderboardProps) {
+export default function Leaderboard({ entries, currentUsername, theme = 'dark', onPlayerClick }: LeaderboardProps) {
   const [cityFilter, setCityFilter] = useState<string>('All');
   const dk = theme === 'dark';
 
@@ -82,7 +83,10 @@ export default function Leaderboard({ entries, currentUsername, theme = 'dark' }
               initial={{ opacity: 0, x: -10 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ delay: i * 0.05 }}
+              onClick={() => onPlayerClick?.(player)}
               className={`flex items-center gap-3 px-4 py-3 transition-colors ${
+                onPlayerClick ? 'cursor-pointer' : ''
+              } ${
                 isMe
                   ? 'bg-amber-500/10'
                   : dk ? 'hover:bg-white/5' : 'hover:bg-gray-50'
@@ -132,7 +136,8 @@ export default function Leaderboard({ entries, currentUsername, theme = 'dark' }
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
-              className="flex items-center gap-3 px-4 py-3 bg-amber-500/10"
+              onClick={() => currentUserEntry && onPlayerClick?.(currentUserEntry)}
+              className={`flex items-center gap-3 px-4 py-3 bg-amber-500/10 ${onPlayerClick ? 'cursor-pointer' : ''}`}
             >
               <div className="w-6 text-center flex-shrink-0">
                 <span className={`text-sm font-mono ${dk ? 'text-gray-500' : 'text-gray-400'}`}>{currentUserRank}</span>

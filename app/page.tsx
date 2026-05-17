@@ -57,6 +57,7 @@ export default function HomePage() {
   const [selectorKey, setSelectorKey] = useState(0);
   const [newBadge, setNewBadge] = useState<Badge | null>(null);
   const [streak, setStreak] = useState(0);
+  const [viewingPlayer, setViewingPlayer] = useState<import('@/lib/game-logic').PlayerStats | null>(null);
 
   // Load all localStorage state after hydration to avoid server/client mismatch
   useEffect(() => {
@@ -224,7 +225,12 @@ export default function HomePage() {
                   <AnimatePresence mode="wait">
                     {sidebarTab === 'leaderboard' && (
                       <motion.div key="lb" initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}>
-                        <Leaderboard entries={leaderboard} currentUsername={username} theme={theme} />
+                        <Leaderboard
+                          entries={leaderboard}
+                          currentUsername={username}
+                          theme={theme}
+                          onPlayerClick={p => setViewingPlayer(p)}
+                        />
                       </motion.div>
                     )}
 
@@ -376,6 +382,14 @@ export default function HomePage() {
           streak={streak}
           coins={coins}
           onClose={() => setShowProfile(false)}
+        />
+      )}
+      {viewingPlayer && (
+        <ProfileModal
+          stats={viewingPlayer}
+          history={[]}
+          streak={0}
+          onClose={() => setViewingPlayer(null)}
         />
       )}
     </div>

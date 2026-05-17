@@ -1,5 +1,6 @@
 'use client';
 
+import { useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Trophy, TrendingUp, TrendingDown, Minus } from 'lucide-react';
 import type { PlayerStats, GameRecord } from '@/lib/game-logic';
@@ -8,7 +9,7 @@ interface ProfileModalProps {
   stats: PlayerStats;
   history: GameRecord[];
   streak: number;
-  coins: number;
+  coins?: number;
   onClose: () => void;
 }
 
@@ -74,6 +75,12 @@ const modeIcon: Record<string, string> = {
 export default function ProfileModal({ stats, history, streak, coins, onClose }: ProfileModalProps) {
   const winRate = stats.gamesPlayed > 0 ? Math.round((stats.wins / stats.gamesPlayed) * 100) : 0;
 
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); };
+    document.addEventListener('keydown', onKey);
+    return () => document.removeEventListener('keydown', onKey);
+  }, [onClose]);
+
   return (
     <AnimatePresence>
       <motion.div
@@ -110,9 +117,11 @@ export default function ProfileModal({ stats, history, streak, coins, onClose }:
                       🔥 {streak} day streak
                     </span>
                   )}
-                  <span className="text-xs px-2 py-0.5 rounded-full bg-amber-500/20 border border-amber-500/30 text-amber-400">
-                    🪙 {coins} coins
-                  </span>
+                  {coins !== undefined && (
+                    <span className="text-xs px-2 py-0.5 rounded-full bg-amber-500/20 border border-amber-500/30 text-amber-400">
+                      🪙 {coins} coins
+                    </span>
+                  )}
                 </div>
               </div>
               <div className="text-right">
