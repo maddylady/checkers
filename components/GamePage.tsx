@@ -690,21 +690,6 @@ export default function GamePage({
         {/* Main board area */}
         <div className="flex-1 flex items-start justify-center order-1 lg:order-2">
           <div className="flex flex-col items-center gap-4">
-            {/* Replay indicator */}
-            {replayIndex !== null && (
-              <div className="flex items-center gap-3 bg-amber-500/15 border border-amber-500/30 rounded-xl px-4 py-2">
-                <span className="text-amber-400 text-xs font-semibold">
-                  Move {replayIndex} / {gameState.moveHistory.length}
-                </span>
-                <button
-                  onClick={() => setReplayIndex(null)}
-                  className="text-xs text-amber-400 hover:text-white transition-colors underline"
-                >
-                  Back to live
-                </button>
-              </div>
-            )}
-
             {/* Player labels */}
             <div className="flex items-center gap-3">
               <div className="w-5 h-5 rounded-full bg-gradient-to-br from-gray-600 to-gray-900 border border-gray-400" />
@@ -725,9 +710,9 @@ export default function GamePage({
 
             <motion.div
               key={replayIndex ?? 'live'}
-              initial={{ opacity: 0 }}
+              initial={{ opacity: 0.5 }}
               animate={{ opacity: 1 }}
-              transition={{ duration: 0.1 }}
+              transition={{ duration: 0.08 }}
             >
               <Board
                 gameState={displayGameState}
