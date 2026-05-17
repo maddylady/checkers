@@ -13,6 +13,7 @@ interface GameControlsProps {
   onResign: () => void;
   playerColor?: Player;
   turnTimer?: number;
+  turnTimerMax?: number;
   opponentName?: string;
   thinking?: boolean;
 }
@@ -31,6 +32,7 @@ export default function GameControls({
   onResign,
   playerColor,
   turnTimer,
+  turnTimerMax = 30,
   opponentName,
   thinking,
 }: GameControlsProps) {
@@ -77,9 +79,9 @@ export default function GameControls({
             <div className="flex-1 bg-white/10 rounded-full h-2">
               <motion.div
                 className={`h-full rounded-full transition-colors ${
-                  turnTimer > 15 ? 'bg-green-400' : turnTimer > 5 ? 'bg-yellow-400' : 'bg-red-400'
+                  turnTimer > turnTimerMax * 0.5 ? 'bg-green-400' : turnTimer > turnTimerMax * 0.17 ? 'bg-yellow-400' : 'bg-red-400'
                 }`}
-                style={{ width: `${(turnTimer / 30) * 100}%` }}
+                style={{ width: `${(turnTimer / turnTimerMax) * 100}%` }}
               />
             </div>
             <span className="text-xs text-gray-300 tabular-nums w-6">{turnTimer}s</span>

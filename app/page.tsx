@@ -2,7 +2,6 @@
 import SkinShop from '@/components/SkinShop';
 import BadgeUnlockModal from '@/components/BadgeUnlockModal';
 import ProfileModal from '@/components/ProfileModal';
-import RulesModal from '@/components/RulesModal';
 import { BADGES, type Badge } from '@/lib/badges';
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -52,14 +51,13 @@ export default function HomePage() {
   const [coins, setCoins] = useState(0);
   const [showShop, setShowShop] = useState(false);
   const [showProfile, setShowProfile] = useState(false);
-  const [showRules, setShowRules] = useState(false);
   const [rulesVariant, setRulesVariantState] = useState<RulesVariant>('american');
   const [selectorKey, setSelectorKey] = useState(0);
   const [newBadge, setNewBadge] = useState<Badge | null>(null);
   const [streak, setStreak] = useState(0);
   const [viewingPlayer, setViewingPlayer] = useState<import('@/lib/game-logic').PlayerStats | null>(null);
   const [selectorStep, setSelectorStep] = useState<string>('mode');
-  const [timeControl, setTimeControl] = useState<TimeControl>({ type: 'move', expiry: 'random' });
+  const [timeControl, setTimeControl] = useState<TimeControl>({ type: 'move', seconds: 30, expiry: 'random' });
 
   // Load all localStorage state after hydration to avoid server/client mismatch
   useEffect(() => {
@@ -169,7 +167,6 @@ export default function HomePage() {
         onShopOpen={() => setShowShop(true)}
         onLogoClick={() => { setScreen('home'); setSelectorKey(k => k + 1); setSelectorStep('mode'); }}
         onProfileOpen={() => setShowProfile(true)}
-        onRulesOpen={() => setShowRules(true)}
       />
 
       <AnimatePresence mode="wait">
@@ -455,13 +452,6 @@ export default function HomePage() {
           />
       )}
       <BadgeUnlockModal badge={newBadge} onClose={() => setNewBadge(null)} />
-      {showRules && (
-        <RulesModal
-          onClose={() => setShowRules(false)}
-          currentVariant={rulesVariant}
-          onVariantChange={(v) => { setRulesVariantState(v); setRulesVariant(v); }}
-        />
-      )}
       {showProfile && (
         <ProfileModal
           stats={stats ?? { username, wins: 0, losses: 0, draws: 0, gamesPlayed: 0, elo: 1200 }}

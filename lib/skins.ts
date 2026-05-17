@@ -9,12 +9,12 @@ export interface SkinPack {
 
 export const SKIN_PACKS: SkinPack[] = [
     { id: 'classic',   name: 'Classic',         redPiece: '🔴', blackPiece: '⚫', price: 0 },
-    { id: 'fruits',    name: 'Fruit Salad',      redPiece: '🍎', blackPiece: '🫐', price: 20 },
-    { id: 'cats_dogs', name: 'Cats vs Dogs',     redPiece: '🐱', blackPiece: '🐶', price: 150 },
-    { id: 'space',     name: 'Space',            redPiece: '🚀', blackPiece: '👽', price: 200 },
+    { id: 'fruits',    name: 'Fruit Salad',      redPiece: '🍎', blackPiece: '🫐', price: 5 },
+    { id: 'cats_dogs', name: 'Cats vs Dogs',     redPiece: '🐱', blackPiece: '🐶', price: 30 },
+    { id: 'space',     name: 'Space',            redPiece: '🚀', blackPiece: '👽', price: 60 },
     { id: 'kz',        name: 'Kazakhstan 🇰🇿',   redPiece: '🦅', blackPiece: '🏕️', price: 0, unlockCondition: '7-day streak' },
-    { id: 'pacman',    name: 'Pac-Man',          redPiece: '👾', blackPiece: '👻', price: 300 },
-    { id: 'chess',     name: 'Chess Style',      redPiece: '♙', blackPiece: '♟',  price: 250 },
+    { id: 'pacman',    name: 'Pac-Man',          redPiece: '👾', blackPiece: '👻', price: 100 },
+    { id: 'chess',     name: 'Chess Style',      redPiece: '♙', blackPiece: '♟',  price: 80 },
 ];
 
 export function getOwnedSkins(): string[] {

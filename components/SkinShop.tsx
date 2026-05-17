@@ -94,14 +94,18 @@ export default function SkinShop({ onClose, onCoinsChange }: Props) {
                                     </button>
                                 ) : isLocked && !streakUnlock ? (
                                     <span className="text-gray-500 text-xs">🔒 {skin.unlockCondition}</span>
-                                ) : (
+                                ) : coins >= skin.price ? (
                                     <button
                                         onClick={() => handleBuy(skin.id, skin.price)}
-                                        disabled={coins < skin.price}
-                                        className="px-3 py-1 text-xs bg-amber-500/20 hover:bg-amber-500/30 text-amber-400 rounded-lg disabled:opacity-40"
+                                        className="px-3 py-1 text-xs bg-amber-500/20 hover:bg-amber-500/30 text-amber-400 rounded-lg"
                                     >
                                         🪙 {skin.price}
                                     </button>
+                                ) : (
+                                    <div className="text-right">
+                                        <div className="text-xs text-gray-500 line-through">🪙 {skin.price}</div>
+                                        <div className="text-[10px] text-red-400">need {skin.price - coins} more</div>
+                                    </div>
                                 )}
                             </div>
                         );

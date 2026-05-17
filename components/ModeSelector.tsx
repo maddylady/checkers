@@ -10,7 +10,7 @@ export type GameMode = 'ai' | 'local' | 'online' | 'mines' | 'roulette';
 
 export type TimeControl =
   | { type: 'none' }
-  | { type: 'move'; expiry: 'random' | 'lose' }
+  | { type: 'move'; seconds: number; expiry: 'random' | 'lose' }
   | { type: 'game'; seconds: number };
 
 interface ModeSelectorProps {
@@ -163,12 +163,12 @@ const tiers: { value: Difficulty; label: string; color: string }[] = [
 ];
 
 const TIME_CONTROLS = [
-  { id: 'none',    icon: '∞',   label: 'No limit',   sub: 'Untimed',    type: 'none' as const,  seconds: 0   },
-  { id: 'move30',  icon: '⏰',  label: '30s / move',  sub: 'Per turn',   type: 'move' as const,  seconds: 30  },
-  { id: 'bullet',  icon: '⚡',  label: '1 min',       sub: 'Bullet',     type: 'game' as const,  seconds: 60  },
-  { id: 'blitz3',  icon: '🔥',  label: '3 min',       sub: 'Blitz',      type: 'game' as const,  seconds: 180 },
-  { id: 'blitz5',  icon: '🏃',  label: '5 min',       sub: 'Rapid',      type: 'game' as const,  seconds: 300 },
-  { id: 'rapid10', icon: '♟️', label: '10 min',      sub: 'Classical',  type: 'game' as const,  seconds: 600 },
+  { id: 'none',     icon: '∞',   label: 'No limit',    sub: 'Untimed',    type: 'none' as const,  seconds: 0    },
+  { id: 'move30',   icon: '⏰',  label: '30s / move',  sub: 'Per turn',   type: 'move' as const,  seconds: 30   },
+  { id: 'move60',   icon: '⏱️', label: '1 min / move', sub: 'Per turn',  type: 'move' as const,  seconds: 60   },
+  { id: 'blitz5',   icon: '⚡',  label: '5 min',        sub: 'Blitz',      type: 'game' as const,  seconds: 300  },
+  { id: 'rapid15',  icon: '🔥',  label: '15 min',       sub: 'Rapid',      type: 'game' as const,  seconds: 900  },
+  { id: 'classic30', icon: '♟️', label: '30 min',      sub: 'Classical',  type: 'game' as const,  seconds: 1800 },
 ];
 
 type Step = 'mode' | 'bots' | 'online' | 'pregame';
@@ -192,7 +192,7 @@ export default function ModeSelector({ onSelect, onStepChange, rulesVariant = 'a
   const buildTimeControl = (): TimeControl => {
     const tc = TIME_CONTROLS.find(t => t.id === timeControlId)!;
     if (tc.type === 'none') return { type: 'none' };
-    if (tc.type === 'move') return { type: 'move', expiry: moveExpiry };
+    if (tc.type === 'move') return { type: 'move', seconds: tc.seconds, expiry: moveExpiry };
     return { type: 'game', seconds: tc.seconds };
   };
 
@@ -406,12 +406,12 @@ export default function ModeSelector({ onSelect, onStepChange, rulesVariant = 'a
                 ))}
               </div>
 
-              {/* Move expiry toggle — only when 30s/move selected */}
+              {/* Move expiry toggle — only when a per-move timer is selected */}
               <AnimatePresence>
-                {timeControlId === 'move30' && (
+                {TIME_CONTROLS.find(t => t.id === timeControlId)?.type === 'move' && (
                   <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }} className="overflow-hidden">
                     <div className="mt-3">
-                      <div className="text-[11px] text-gray-500 mb-1.5">When the 30s runs out…</div>
+                      <div className="text-[11px] text-gray-500 mb-1.5">When the time runs out…</div>
                       <div className="grid grid-cols-2 gap-2">
                         <button
                           onClick={() => setMoveExpiry('random')}

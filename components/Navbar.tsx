@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Sun, Moon, Zap, Crown, X, Check, LogOut, ShoppingBag, User, BookOpen } from 'lucide-react';
+import { Sun, Moon, Zap, Crown, X, Check, LogOut, ShoppingBag, User } from 'lucide-react';
 import { setPro } from '@/lib/storage';
 import { signInWithGoogle, signOut, type AuthUser } from '@/lib/supabase';
 
@@ -16,7 +16,6 @@ interface NavbarProps {
   onShopOpen: () => void;
   onLogoClick?: () => void;
   onProfileOpen?: () => void;
-  onRulesOpen?: () => void;
 }
 
 function GoogleIcon() {
@@ -131,7 +130,7 @@ function ProModal({ onClose }: { onClose: () => void }) {
   );
 }
 
-export default function Navbar({ theme, onThemeToggle, username, onUsernameChange, googleUser, coins, onShopOpen, onLogoClick, onProfileOpen, onRulesOpen }: NavbarProps) {
+export default function Navbar({ theme, onThemeToggle, username, onUsernameChange, googleUser, coins, onShopOpen, onLogoClick, onProfileOpen }: NavbarProps) {
   const [showPro, setShowPro] = useState(false);
   const [showUserMenu, setShowUserMenu] = useState(false);
   const [signingIn, setSigningIn] = useState(false);
@@ -264,15 +263,6 @@ export default function Navbar({ theme, onThemeToggle, username, onUsernameChang
               </div>
             </div>
           )}
-
-          {/* Rules button */}
-          <button
-            onClick={onRulesOpen}
-            className="p-2 rounded-xl bg-white/10 hover:bg-white/20 transition-colors text-gray-300"
-            title="Rules"
-          >
-            <BookOpen size={16} />
-          </button>
 
           {/* Theme toggle */}
           <button

@@ -249,6 +249,7 @@ export default function GamePage({
       return;
     }
     const expiry = timeControl?.type === 'move' ? timeControl.expiry : 'random';
+    const moveSecs = timeControl?.type === 'move' ? timeControl.seconds : 30;
 
     const shouldRun =
       gameState.status === 'playing' &&
@@ -261,8 +262,8 @@ export default function GamePage({
       return;
     }
 
-    timerCountRef.current = 30;
-    const resetTimer = setTimeout(() => setTurnTimer(30), 0);
+    timerCountRef.current = moveSecs;
+    const resetTimer = setTimeout(() => setTurnTimer(moveSecs), 0);
     timerRef.current = setInterval(() => {
       timerCountRef.current -= 1;
       setTurnTimer(timerCountRef.current);
@@ -282,8 +283,8 @@ export default function GamePage({
             }
           }
         }
-        timerCountRef.current = 30;
-        setTurnTimer(30);
+        timerCountRef.current = moveSecs;
+        setTurnTimer(moveSecs);
       }
     }, 1000);
 
@@ -619,6 +620,7 @@ export default function GamePage({
             onResign={handleResign}
             playerColor={mode !== 'local' ? playerColor : undefined}
             turnTimer={(timeControl?.type === 'none' || timeControl?.type === 'game') ? undefined : turnTimer}
+            turnTimerMax={timeControl?.type === 'move' ? timeControl.seconds : 30}
             opponentName={(mode === 'ai' || mode === 'mines' || mode === 'roulette') ? (botName || `AI (${difficulty})`) : opponentName}
             thinking={thinking}
           />
@@ -672,8 +674,7 @@ export default function GamePage({
           )}
 
           {/* Move history / replay */}
-          {gameState.moveHistory.length > 0 && (
-            <div className="bg-white/5 rounded-2xl p-4 border border-white/10">
+          <div className="bg-white/5 rounded-2xl p-4 border border-white/10">
               <div className="flex items-center justify-between mb-2">
                 <div className="text-xs text-gray-400 uppercase tracking-wider">Move History</div>
                 {replayIndex !== null && (
@@ -756,7 +757,6 @@ export default function GamePage({
                 })}
               </div>
             </div>
-          )}
         </div>
 
         {/* Main board area */}
