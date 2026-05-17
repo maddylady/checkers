@@ -9,6 +9,21 @@ import {
 
 export type Difficulty = 'easy' | 'medium' | 'hard';
 
+// Maps bot ELO (350–2200) to { randomChance, depth }
+function paramsFromStrength(strength: number): { depth: number; randomChance: number } {
+  // strength is 0–100 (normalised from ELO)
+  if (strength < 10) return { depth: 1, randomChance: 0.92 };
+  if (strength < 20) return { depth: 1, randomChance: 0.82 };
+  if (strength < 30) return { depth: 1, randomChance: 0.70 };
+  if (strength < 42) return { depth: 2, randomChance: 0.45 };
+  if (strength < 55) return { depth: 3, randomChance: 0.20 };
+  if (strength < 65) return { depth: 4, randomChance: 0.08 };
+  if (strength < 75) return { depth: 4, randomChance: 0.02 };
+  if (strength < 83) return { depth: 5, randomChance: 0 };
+  if (strength < 92) return { depth: 6, randomChance: 0 };
+  return { depth: 7, randomChance: 0 };
+}
+
 // Board evaluation: positive = red winning, negative = black winning
 function evaluateBoard(board: Board): number {
   let score = 0;
@@ -101,44 +116,41 @@ function minimax(
   }
 }
 
-function getDepth(difficulty: Difficulty): number {
+// Fallback difficulty params when no botElo is provided (mines/roulette modes)
+function defaultParams(difficulty: Difficulty): { depth: number; randomChance: number } {
   switch (difficulty) {
-    case 'easy': return 2;
-    case 'medium': return 4;
-    case 'hard': return 7;
+    case 'easy':   return { depth: 1, randomChance: 0.80 };
+    case 'medium': return { depth: 4, randomChance: 0.12 };
+    case 'hard':   return { depth: 7, randomChance: 0 };
   }
 }
 
 export function getBestMove(
   board: Board,
   player: Player,
-  difficulty: Difficulty
+  difficulty: Difficulty,
+  botElo?: number,
 ): Move | null {
   const moves = getAllValidMoves(board, player);
   if (moves.length === 0) return null;
 
-  // Easy: pick a random move 60% of the time, else minimax at depth 2
-  if (difficulty === 'easy' && Math.random() < 0.6) {
+  // Derive strength 0–100 from ELO if available, else use difficulty defaults
+  const params = botElo !== undefined
+    ? paramsFromStrength(Math.min(100, Math.max(0, Math.round((botElo - 350) / (2200 - 350) * 100))))
+    : defaultParams(difficulty);
+
+  if (Math.random() < params.randomChance) {
     return moves[Math.floor(Math.random() * moves.length)];
   }
 
-  const depth = getDepth(difficulty);
   const maximizing = player === 'red';
-
   let bestMove: Move = moves[0];
   let bestScore = maximizing ? -Infinity : Infinity;
 
   for (const move of moves) {
     const newBoard = applyMove(board, move);
     const nextPlayer: Player = player === 'red' ? 'black' : 'red';
-    const score = minimax(
-      newBoard,
-      depth - 1,
-      -Infinity,
-      Infinity,
-      !maximizing,
-      nextPlayer
-    );
+    const score = minimax(newBoard, params.depth - 1, -Infinity, Infinity, !maximizing, nextPlayer);
 
     if (maximizing && score > bestScore) {
       bestScore = score;
@@ -146,19 +158,6 @@ export function getBestMove(
     } else if (!maximizing && score < bestScore) {
       bestScore = score;
       bestMove = move;
-    }
-  }
-
-  // Medium: add a tiny bit of randomness to make it feel more natural
-  if (difficulty === 'medium' && Math.random() < 0.15) {
-    const topMoves = moves.filter(m => {
-      const newBoard = applyMove(board, m);
-      const nextPlayer: Player = player === 'red' ? 'black' : 'red';
-      const score = minimax(newBoard, 2, -Infinity, Infinity, !maximizing, nextPlayer);
-      return Math.abs(score - bestScore) < 2;
-    });
-    if (topMoves.length > 0) {
-      return topMoves[Math.floor(Math.random() * topMoves.length)];
     }
   }
 

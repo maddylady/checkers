@@ -304,7 +304,7 @@ export default function GamePage({
     const aiPlayer: Player = playerColor === 'red' ? 'black' : 'red';
 
     const timer = setTimeout(() => {
-      const best = getBestMove(gameState.board, aiPlayer, difficulty);
+      const best = getBestMove(gameState.board, aiPlayer, difficulty, botElo);
       if (best) {
         const movedPlayer = gameStateRef.current.currentPlayer;
         let newState = applyMoveToState(gameStateRef.current, best);
